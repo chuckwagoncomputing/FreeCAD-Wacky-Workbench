@@ -7,7 +7,6 @@ icon = os.path.join(__dir__, 'Wacky.svg')
 
 class WackyWorkbench (Workbench):
     MenuText = "Wacky"
-    FreeCAD.Console.PrintMessage(icon)
     Icon = icon
     def Initialize(self):
     	import StraightCut
