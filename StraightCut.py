@@ -8,7 +8,6 @@ class StraightCut():
         obj.addProperty("App::PropertyLink", "Part", "StraightCut", "Object to be cut")
         obj.addProperty("App::PropertyLink", "Tool", "StraightCut", "Object which which the part intersects")
         # Very hacky storing as strings to avoid loops.
-        # The downside is that you have to manually recompute the StraightCut object if you change attachments
         obj.addProperty("App::PropertyString", "AttachedPart", "StraightCut", "Object which links to Part")
         obj.addProperty("App::PropertyString", "AttachedTool", "StraightCut", "Object which links to Tool")
         obj.Proxy = self
@@ -18,6 +17,7 @@ class StraightCut():
         sel = FreeCADGui.Selection.getSelection()
         # s[part|tool] = selected
         spart = None
+        tool = None
         stool = None
         linked = False
         # Initial generation
@@ -46,23 +46,28 @@ class StraightCut():
                     obj.Part = tpart
                 else:
                     obj.Part = obj.BaseFeature
-            obj.Tool = obj.Tool.getParent().Tip
             # If we have a link that points to the part (assume the same for tool)
             if obj.AttachedPart != "":
                 spart = doc.getObject(obj.AttachedPart)
                 stool = doc.getObject(obj.AttachedTool)
+                stool.recompute()
                 linked = True
 
         # If the part and tool are a body (probably the case on inital creation)
-        if obj.Part.TypeId == 'PartDesign::Body' and obj.Tool.TypeId == 'PartDesign::Body':
-            # Make doubly sure the tip isn't us
-            if obj.Part.Tip == obj:
-                obj.Part = obj.BaseFeature
-            else:
-                obj.Part = obj.Part.Tip
-            obj.Tool = obj.Tool.Tip
+        if obj.Part.TypeId == 'PartDesign::Body':
+            obj.Part = obj.Part.Tip
+        if obj.Tool.TypeId == 'PartDesign::Body':
+            shb = obj.Part.getParent().newObject('PartDesign::ShapeBinder','ShapeBinder')
+            shb.Support = [obj.Tool,'']
+            obj.Tool = shb
+            shb.recompute()
+            shb.Visibility = False
+            tool = obj.Tool
+        else:
+            tool = obj.Tool
 
-        if not obj.Part.isDerivedFrom('PartDesign::Feature') or not obj.Tool.isDerivedFrom('PartDesign::Feature'):
+        if not obj.Part.isDerivedFrom('PartDesign::Feature'): # or not tool.isDerivedFrom('PartDesign::Feature'):
+            FreeCAD.Console.PrintMessage(obj.Part.Name + " " + obj.Part.TypeId)
             FreeCAD.Console.PrintError("can't use selection")
             return
 
@@ -71,7 +76,7 @@ class StraightCut():
         com = None
         # the easy mode
         if not linked:
-            com = obj.Part.Shape.common(obj.Tool.Shape)
+            com = obj.Part.Shape.common(tool.Shape)
         # the hard mode
         else:
             fixed = None
@@ -80,13 +85,13 @@ class StraightCut():
             # we have to figure out which was attached to which
             # sometimes the part can be attached to the tool
             if spart.AttachedTo.split('#')[0] == stool.Name:
-                fixed = obj.Tool
+                fixed = tool
                 lattached = spart
                 attached = obj.Part
             elif stool.AttachedTo.split('#')[0] == spart.Name:
                 fixed = obj.Part
                 lattached = stool
-                attached = obj.Tool
+                attached = tool
             else:
                 FreeCAD.Console.PrintError("not attached")
                 return
@@ -129,6 +134,11 @@ class ViewProviderStraightCut:
     def attach(self, obj):
         self.Object = obj.Object
         return
+
+    def claimChildren(self):
+        objs = []
+        objs.append(self.Object.Tool)
+        return objs
 
     def updateData(self, fp, prop):
         return
