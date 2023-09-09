@@ -62,12 +62,9 @@ class StraightCut():
             obj.Tool = shb
             shb.recompute()
             shb.Visibility = False
-            tool = obj.Tool
-        else:
-            tool = obj.Tool
+        tool = obj.Tool
 
         if not obj.Part.isDerivedFrom('PartDesign::Feature'): # or not tool.isDerivedFrom('PartDesign::Feature'):
-            FreeCAD.Console.PrintMessage(obj.Part.Name + " " + obj.Part.TypeId)
             FreeCAD.Console.PrintError("can't use selection")
             return
 
@@ -79,24 +76,20 @@ class StraightCut():
             com = obj.Part.Shape.common(tool.Shape)
         # the hard mode
         else:
-            fixed = None
             attached = None
-            lattached = None
+            invert = False
             # we have to figure out which was attached to which
             # sometimes the part can be attached to the tool
             if spart.AttachedTo.split('#')[0] == stool.Name:
-                fixed = tool
-                lattached = spart
-                attached = obj.Part
+                attached = spart
+                invert = True
             elif stool.AttachedTo.split('#')[0] == spart.Name:
-                fixed = obj.Part
-                lattached = stool
-                attached = tool
+                attached = stool
             else:
                 FreeCAD.Console.PrintError("not attached")
                 return
-            placement = lattached.LinkPlacement
-            pat = doc.getObject(lattached.AttachedTo.split('#')[0])
+            placement = attached.LinkPlacement
+            pat = doc.getObject(attached.AttachedTo.split('#')[0])
             while pat != None:
                 v1 = pat.Placement.Base
                 v2 = placement.Base
@@ -106,9 +99,12 @@ class StraightCut():
                 placement.Rotation = r2.multiply(r1.inverted())
                 pat = doc.getObject(pat.AttachedTo.split('#')[0])
             temp = FreeCAD.ActiveDocument.addObject("Part::Feature", "TempBody")
-            temp.Shape = attached.Shape
-            temp.Placement = placement
-            com = fixed.Shape.common(temp.Shape)
+            temp.Shape = tool.Shape
+            if invert:
+                temp.Placement = placement.inverse()
+            else:
+                temp.Placement = placement
+            com = obj.Part.Shape.common(temp.Shape)
             doc.removeObject(temp.Name)
         comp = FreeCAD.ActiveDocument.addObject("Part::Feature", "Common")
         comp.Shape = com
