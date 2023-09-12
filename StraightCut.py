@@ -2,6 +2,20 @@ import FreeCAD, FreeCADGui, TechDraw, Draft, Part, os
 
 __dir__ = os.path.dirname(__file__)
 
+def placementSub(a, b):
+    v1 = a.Base
+    v2 = b.inverse().Base
+    r1 = a.Rotation
+    r2 = b.Rotation
+    return FreeCAD.Placement(v1 + v2, r1.multiply(r2.inverted()))
+
+def placementAdd(a, b):
+    v1 = a.Base
+    v2 = b.inverse().Base
+    r1 = a.Rotation
+    r2 = b.Rotation
+    return FreeCAD.Placement(v1 - v2, r1.multiply(r2))
+
 class StraightCut():
     def __init__(self, obj):
         self.Type = "straightcut"
@@ -39,6 +53,7 @@ class StraightCut():
                 return
         # Recomputation
         else:
+            return
             # Updating to tip of the body if we're not pointed at it anymore.
             tpart = obj.Part.getParent().Tip
             if tpart != obj.Part:
@@ -53,11 +68,12 @@ class StraightCut():
                 stool.recompute()
                 linked = True
 
+        part = obj.Part
         # If the part and tool are a body (probably the case on inital creation)
         if obj.Part.TypeId == 'PartDesign::Body':
             obj.Part = obj.Part.Tip
         if obj.Tool.TypeId == 'PartDesign::Body':
-            shb = obj.Part.getParent().newObject('PartDesign::ShapeBinder','ShapeBinder')
+            shb = part.newObject('PartDesign::ShapeBinder','ShapeBinder')
             shb.Support = [obj.Tool,'']
             obj.Tool = shb
             shb.recompute()
@@ -71,9 +87,13 @@ class StraightCut():
 
         # common shape, which will be generated differently in different scenarios
         com = None
+        pl = part.Placement
+        part.Placement = FreeCAD.Placement(FreeCAD.Vector(0,0,0),FreeCAD.Rotation(FreeCAD.Vector(0,0,1),0))
+        tool.Placement = placementSub(tool.Placement, pl)
+
         # the easy mode
         if not linked:
-            com = obj.Part.Shape.common(tool.Shape)
+            com = part.Shape.common(tool.Shape)
         # the hard mode
         else:
             attached = None
@@ -91,12 +111,7 @@ class StraightCut():
             placement = attached.LinkPlacement
             pat = doc.getObject(attached.AttachedTo.split('#')[0])
             while pat != None:
-                v1 = pat.Placement.Base
-                v2 = placement.Base
-                r1 = pat.Placement.Rotation
-                r2 = placement.Rotation
-                placement.Base = v2 - v1
-                placement.Rotation = r2.multiply(r1.inverted())
+                placement = placementSub(placement, pat.Placement)
                 pat = doc.getObject(pat.AttachedTo.split('#')[0])
             temp = FreeCAD.ActiveDocument.addObject("Part::Feature", "TempBody")
             temp.Shape = tool.Shape
@@ -104,23 +119,26 @@ class StraightCut():
                 temp.Placement = placement.inverse()
             else:
                 temp.Placement = placement
-            com = obj.Part.Shape.common(temp.Shape)
+            com = part.Shape.common(temp.Shape)
             doc.removeObject(temp.Name)
         comp = FreeCAD.ActiveDocument.addObject("Part::Feature", "Common")
         comp.Shape = com
         cl = comp.Shape.BoundBox.ZLength
-        view = Draft.makeShape2DView(comp)
+        vec = part.Placement.Rotation.multVec(FreeCAD.Vector(0,0,1))
+        view = Draft.makeShape2DView(comp, vec)
         view.recompute()
         shp = view.Shape
         wire = TechDraw.findOuterWire(shp.Edges)
         doc.removeObject(view.Name)
         doc.removeObject(comp.Name)
         face = Part.Face(wire)
-        extr = face.extrude(FreeCAD.Vector(0, 0, cl))
-        cut = obj.Part.Shape.cut(extr)
+        extr = face.extrude(part.Placement.Rotation.multVec(FreeCAD.Vector(0, 0, cl)))
+        cut = part.Shape.cut(extr)
+        part.Placement = pl
+        tool.Placement = placementAdd(tool.Placement, pl)
         obj.Shape = cut
         if obj.getParent() == None:
-            obj.Part.getParent().addObject(obj)
+            part.addObject(obj)
 
 class ViewProviderStraightCut:
     def __init__(self, obj):
