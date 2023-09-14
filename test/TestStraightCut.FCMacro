@@ -13,6 +13,8 @@ import newDatumCmd
 import insertLinkCmd
 import placeLinkCmd
 
+status = 0
+
 def setUpParts():
 	doc = App.newDocument()
 	b1 = doc.addObject('PartDesign::Body','Body')
@@ -96,6 +98,13 @@ def setUpParts():
 	return doc, b1, b2
 
 class TestStraightCut(unittest.TestCase):
+	def tearDown(self):
+		global status
+		result = self._outcome.result
+		ok = all(test != self for test, text in result.errors + result.failures)
+		if not ok:
+			status = 1
+
 	def test_positioned_tool(self):
 		doc, b1, b2 = setUpParts()
 		b2.Placement = App.Placement(App.Vector(35,50,-20),App.Rotation(App.Vector(15,30,1),45))
@@ -255,4 +264,4 @@ class TestStraightCut(unittest.TestCase):
 		self.assertEqual(v, 87457.96524147251)
 
 Test.runTestsFromClass(TestStraightCut)
-exit()
+exit(status)
