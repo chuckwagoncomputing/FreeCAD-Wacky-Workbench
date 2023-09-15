@@ -15,11 +15,13 @@ jobs:
         sudo apt-get install freecad
 
     - uses: actions/checkout@v3
-      path: "~/.local/share/FreeCAD/Mod/Wacky"
+      with:
+        path: "~/.local/share/FreeCAD/Mod/Wacky"
 
     - uses: actions/checkout@v3
-      path: "~/.local/share/FreeCAD/Mod/Assembly4"
-      repository: "Zolko-123/FreeCAD_Assembly4"
+      with:
+        path: "~/.local/share/FreeCAD/Mod/Assembly4"
+        repository: "Zolko-123/FreeCAD_Assembly4"
 
     - name: Run tests
       working-directory: "~/.local/share/FreeCAD/Mod/Wacky/test"
