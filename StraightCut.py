@@ -55,7 +55,7 @@ class StraightCut():
         else:
             return
             # Updating to tip of the body if we're not pointed at it anymore.
-            tpart = obj.Part.getParent().Tip
+            tpart = obj.Part.Parents[0][0].Tip
             if tpart != obj.Part:
                 if tpart != obj:
                     obj.Part = tpart
@@ -137,7 +137,7 @@ class StraightCut():
         part.Placement = pl
         tool.Placement = placementAdd(tool.Placement, pl)
         obj.Shape = cut
-        if obj.getParent() == None:
+        if obj.Parents[0][0] == None:
             part.addObject(obj)
 
 class ViewProviderStraightCut:
