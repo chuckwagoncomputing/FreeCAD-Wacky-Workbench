@@ -37,7 +37,7 @@ jobs:
         freecadcmd --dump-config
 
     - name: Run tests
-      working-directory: ~/.local/share/FreeCAD/Mod/Wacky
       run: |
+        cd ~/.local/share/FreeCAD/Mod/Wacky
         pwd
         xvfb-run freecad test/TestStraightCut.FCMacro
