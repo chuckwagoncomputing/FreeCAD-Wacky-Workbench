@@ -20,15 +20,18 @@ jobs:
 
     - uses: actions/checkout@v3
       with:
-        path: ~/.local/share/FreeCAD/Mod/Wacky
+        path: Wacky
 
     - uses: actions/checkout@v3
       with:
-        path: ~/.local/share/FreeCAD/Mod/Assembly4
+        path: Assembly4
         repository: "Zolko-123/FreeCAD_Assembly4"
 
-    - name: Debug
+    - name: Move repos & Debug
+      working-directory: ${GITHUB_WORKSPACE}
       run: |
+        mv Wacky ~/.local/share/FreeCAD/Mod
+        mv Assembly4 ~/.local/share/FreeCAD/Mod
         realpath ~/.local/share/FreeCAD/Mod
         ls ~/.local/share/FreeCAD/Mod
         freecadcmd --dump-config
@@ -36,4 +39,5 @@ jobs:
     - name: Run tests
       working-directory: ~/.local/share/FreeCAD/Mod/Wacky
       run: |
+        pwd
         xvfb-run freecad test/TestStraightCut.FCMacro
