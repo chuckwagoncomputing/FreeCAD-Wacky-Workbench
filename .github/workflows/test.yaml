@@ -16,23 +16,24 @@ jobs:
         sudo apt-get install freecad xvfb
 
     - name: Make Mod directory
-      run: mkdir -p "~/.local/share/FreeCAD/Mod"
+      run: mkdir -p ~/.local/share/FreeCAD/Mod
 
     - uses: actions/checkout@v3
       with:
-        path: "~/.local/share/FreeCAD/Mod/Wacky"
+        path: ~/.local/share/FreeCAD/Mod/Wacky
 
     - uses: actions/checkout@v3
       with:
-        path: "~/.local/share/FreeCAD/Mod/Assembly4"
+        path: ~/.local/share/FreeCAD/Mod/Assembly4
         repository: "Zolko-123/FreeCAD_Assembly4"
 
     - name: Debug
       run: |
-        ls "~/.local/share/FreeCAD/Mod"
+        realpath ~/.local/share/FreeCAD/Mod
+        ls ~/.local/share/FreeCAD/Mod
         freecadcmd --dump-config
 
     - name: Run tests
-      working-directory: "~/.local/share/FreeCAD/Mod/Wacky"
+      working-directory: ~/.local/share/FreeCAD/Mod/Wacky
       run: |
         xvfb-run freecad test/TestStraightCut.FCMacro
