@@ -28,7 +28,7 @@ jobs:
         repository: "Zolko-123/FreeCAD_Assembly4"
 
     - name: Move repos & Debug
-      working-directory: ${GITHUB_WORKSPACE}
+      working-directory: ${{ github.workspace }}
       run: |
         mv Wacky ~/.local/share/FreeCAD/Mod
         mv Assembly4 ~/.local/share/FreeCAD/Mod
