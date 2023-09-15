@@ -12,7 +12,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install freecad
+        sudo apt-get install freecad xvfb
 
     - uses: actions/checkout@v3
       with:
@@ -26,4 +26,4 @@ jobs:
     - name: Run tests
       working-directory: "~/.local/share/FreeCAD/Mod/Wacky/test"
       run: |
-        freecad TestStraightCut.FCMacro
+        xvfb-run freecad TestStraightCut.FCMacro
