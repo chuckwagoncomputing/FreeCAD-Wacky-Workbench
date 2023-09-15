@@ -16,7 +16,7 @@ jobs:
         sudo apt-get install freecad xvfb
 
     - name: Make Mod directory
-      run: mkdir -p "~/.FreeCad/Mod"
+      run: mkdir -p "~/.FreeCAD/Mod"
 
     - uses: actions/checkout@v3
       with:
