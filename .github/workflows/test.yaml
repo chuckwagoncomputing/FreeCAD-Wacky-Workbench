@@ -32,6 +32,6 @@ jobs:
         ls "~/.FreeCAD/Mod"
 
     - name: Run tests
-      working-directory: "~/.FreeCAD/Mod/Wacky/test"
+      working-directory: "~/.FreeCAD/Mod/Wacky"
       run: |
-        xvfb-run freecad TestStraightCut.FCMacro
+        xvfb-run freecad test/TestStraightCut.FCMacro
