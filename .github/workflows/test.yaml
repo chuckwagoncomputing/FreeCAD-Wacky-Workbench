@@ -30,6 +30,7 @@ jobs:
     - name: Debug
       run: |
         ls "~/.FreeCAD/Mod"
+        freecadcmd --dump-config
 
     - name: Run tests
       working-directory: "~/.FreeCAD/Mod/Wacky"
