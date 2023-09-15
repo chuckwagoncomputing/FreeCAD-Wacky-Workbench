@@ -2,6 +2,12 @@ import FreeCAD, FreeCADGui, TechDraw, Draft, Part, os
 
 __dir__ = os.path.dirname(__file__)
 
+def getParent(obj):
+    for it in obj.InList:
+        if it.hasExtension("App::GeoFeatureGroupExtension"):
+            return obj
+    return None
+
 def placementSub(a, b):
     v1 = a.Base
     v2 = b.inverse().Base
@@ -55,7 +61,7 @@ class StraightCut():
         else:
             return
             # Updating to tip of the body if we're not pointed at it anymore.
-            tpart = obj.Part.Parents[0][0].Tip
+            tpart = getParent(obj.Part).Tip
             if tpart != obj.Part:
                 if tpart != obj:
                     obj.Part = tpart
@@ -137,7 +143,7 @@ class StraightCut():
         part.Placement = pl
         tool.Placement = placementAdd(tool.Placement, pl)
         obj.Shape = cut
-        if obj.Parents[0][0] == None:
+        if getParent(obj) == None:
             part.addObject(obj)
 
 class ViewProviderStraightCut:
