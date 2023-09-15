@@ -27,6 +27,10 @@ jobs:
         path: "~/.FreeCAD/Mod/Assembly4"
         repository: "Zolko-123/FreeCAD_Assembly4"
 
+    - name: Debug
+      run: |
+        ls "~/.FreeCad/Mod"
+
     - name: Run tests
       working-directory: "~/.FreeCAD/Mod/Wacky/test"
       run: |
