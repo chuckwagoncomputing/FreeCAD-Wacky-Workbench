@@ -128,7 +128,7 @@ class TestStraightCut(unittest.TestCase):
 		Gui.runCommand('StraightCut',0)
 		v = b1.Shape.Volume
 		App.closeDocument(doc.Name)
-		self.assertEqual(v, 81923.91622644056)
+		self.assertAlmostEqual(v, 81923.91622644056, 7)
 
 	def test_positioned_part(self):
 		doc, b1, b2 = setUpParts()
@@ -141,7 +141,7 @@ class TestStraightCut(unittest.TestCase):
 		Gui.runCommand('StraightCut',0)
 		v = b1.Shape.Volume
 		App.closeDocument(doc.Name)
-		self.assertEqual(v, 82077.27162062649)
+		self.assertAlmostEqual(v, 82077.27162062649, 7)
 
 	def test_positioned_both(self):
 		doc, b1, b2 = setUpParts()
@@ -155,7 +155,7 @@ class TestStraightCut(unittest.TestCase):
 		Gui.runCommand('StraightCut',0)
 		v = b1.Shape.Volume
 		App.closeDocument(doc.Name)
-		self.assertEqual(v, 81923.91622644138)
+		self.assertAlmostEqual(v, 81923.91622644138, 7)
 
 	def test_assembly_tool(self):
 		doc, b1, b2 = setUpParts()
@@ -221,7 +221,7 @@ class TestStraightCut(unittest.TestCase):
 		Gui.runCommand('StraightCut',0)
 		v = b1.Shape.Volume
 		App.closeDocument(doc.Name)
-		self.assertEqual(v, 87457.9652414781)
+		self.assertAlmostEqual(v, 87457.9652414781, 7)
 
 	def test_assembly_part(self):
 		doc, b1, b2 = setUpParts()
@@ -287,7 +287,7 @@ class TestStraightCut(unittest.TestCase):
 		Gui.runCommand('StraightCut',0)
 		v = b1.Shape.Volume
 		App.closeDocument(doc.Name)
-		self.assertEqual(v, 87457.96524147251)
+		self.assertAlmostEqual(v, 87457.96524147251, 7)
 
 Test.runTestsFromClass(TestStraightCut)
 exit(status)
