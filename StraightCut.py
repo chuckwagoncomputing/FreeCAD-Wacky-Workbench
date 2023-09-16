@@ -90,10 +90,10 @@ class StraightCut():
         # common shape, which will be generated differently in different scenarios
         com = None
         pl = spart.Placement
-        ptb = doc.addObject("Part::Feature", "TempBody")
+        ptb = doc.addObject("Part::Feature", "TempPart")
         ptb.Shape = part.Shape
         ptb.Placement = FreeCAD.Placement(FreeCAD.Vector(0,0,0),FreeCAD.Rotation(FreeCAD.Vector(0,0,1),0))
-        ttb = doc.addObject("Part::Feature", "TempBody")
+        ttb = doc.addObject("Part::Feature", "TempTool")
         ttb.Shape = tool.Shape
         ttb.Placement = tool.Placement
         part = ptb
