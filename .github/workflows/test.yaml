@@ -18,7 +18,7 @@ jobs:
       run: |
         wget https://github.com/FreeCAD/FreeCAD/releases/download/0.21.1/FreeCAD_0.21.1-Linux-x86_64.AppImage
         chmod u+x FreeCAD_0.21.1-Linux-x86_64.AppImage
-        ln -s FreeCAD_0.21.1-Linux-x86_64.AppImage /usr/local/bin/freecad
+        ln -s "$(realpath FreeCAD_0.21.1-Linux-x86_64.AppImage)" /usr/local/bin/freecad
 
     - name: Make Mod directory
       run: mkdir -p ~/.local/share/FreeCAD/Mod
