@@ -76,6 +76,7 @@ class StraightCut():
         if obj.Tool.TypeId == 'PartDesign::Body':
             shb = part.newObject('PartDesign::ShapeBinder','ShapeBinder')
             shb.Support = [obj.Tool,'']
+            shb.TraceSupport = True
             obj.Tool = shb
             shb.recompute()
             shb.Visibility = False
