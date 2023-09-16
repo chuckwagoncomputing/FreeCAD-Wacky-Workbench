@@ -101,21 +101,21 @@ class TestStraightCut(unittest.TestCase):
 	def tearDown(self):
 		global status
 		if hasattr(self._outcome, 'errors'):
-				result = self.defaultTestResult()
-				self._feedErrorsToResult(result, self._outcome.errors)
+			result = self.defaultTestResult()
+			self._feedErrorsToResult(result, self._outcome.errors)
 		else:
-				result = self._outcome.result
+			result = self._outcome.result
 		ok = all(test != self for test, text in result.errors + result.failures)
 		if ok:
-				print('\nOK: %s' % (self.id(),))
+			print('\nOK: %s' % (self.id(),))
 		else:
-				status = 1
+			status = 1
 		for typ, errors in (('ERROR', result.errors), ('FAIL', result.failures)):
-				for test, text in errors:
-						if test is self:
-								msg = [x for x in text.split('\n')[1:]
-										if not x.startswith(' ')][0]
-								App.Console.PrintMessage("\n\n%s: %s\n     %s" % (typ, self.id(), msg))
+			for test, text in errors:
+				if test is self:
+					msg = [x for x in text.split('\n')[1:]
+						if not x.startswith(' ')][0]
+					App.Console.PrintMessage("\n\n%s: %s\n     %s" % (typ, self.id(), msg))
 
 	def test_positioned_tool(self):
 		doc, b1, b2 = setUpParts()
