@@ -100,6 +100,8 @@ class StraightCut():
         pl = part.Placement
         part.Placement = FreeCAD.Placement(FreeCAD.Vector(0,0,0),FreeCAD.Rotation(FreeCAD.Vector(0,0,1),0))
         tool.Placement = placementSub(tool.Placement, pl)
+        tool.recompute()
+        part.recompute()
 
         # the easy mode
         if not linked:
