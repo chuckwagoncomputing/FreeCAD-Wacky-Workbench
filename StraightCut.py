@@ -70,10 +70,16 @@ class StraightCut():
                 stool.recompute()
                 linked = True
 
-        part = obj.Part
         # If the part and tool are a body (probably the case on inital creation)
         if obj.Part.TypeId == 'PartDesign::Body':
+            part = obj.Part
             obj.Part = obj.Part.Tip
+        elif obj.Part.isDerivedFrom('PartDesign::Feature'):
+            part = obj.Part.getParent()
+
+        if obj.Tool.isDerivedFrom('PartDesign::Feature'):
+            obj.Tool = obj.Tool.getParent()
+
         if obj.Tool.TypeId == 'PartDesign::Body':
             shb = part.newObject('PartDesign::ShapeBinder','ShapeBinder')
             shb.Support = [obj.Tool,'']
@@ -83,7 +89,7 @@ class StraightCut():
             shb.Visibility = False
         tool = obj.Tool
 
-        if not obj.Part.isDerivedFrom('PartDesign::Feature'): # or not tool.isDerivedFrom('PartDesign::Feature'):
+        if not obj.Part.isDerivedFrom('PartDesign::Feature') or not tool.TypeId == 'PartDesign::ShapeBinder':
             FreeCAD.Console.PrintError("can't use selection")
             return
 
