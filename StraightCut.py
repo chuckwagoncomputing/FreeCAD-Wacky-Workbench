@@ -2,12 +2,6 @@ import FreeCAD, FreeCADGui, TechDraw, Draft, Part, os
 
 __dir__ = os.path.dirname(__file__)
 
-def getParent(obj):
-    for it in obj.InList:
-        if it.hasExtension("App::GeoFeatureGroupExtension"):
-            return obj
-    return None
-
 def placementSub(a, b):
     v1 = a.Base
     v2 = b.inverse().Base
@@ -40,6 +34,7 @@ class StraightCut():
         tool = None
         stool = None
         linked = False
+        recompute = False
         # Initial generation
         if obj.Part is None and obj.Tool is None:
             if len(sel) == 2:
@@ -59,8 +54,9 @@ class StraightCut():
                 return
         # Recomputation
         else:
+            recompute = True
             # Updating to tip of the body if we're not pointed at it anymore.
-            tpart = getParent(obj.Part).Tip
+            tpart = obj.Part.getParent().Tip
             if tpart != obj.Part:
                 if tpart != obj:
                     obj.Part = tpart
@@ -89,6 +85,14 @@ class StraightCut():
             FreeCAD.Console.PrintError("can't use selection")
             return
 
+        tshb = doc.addObject('PartDesign::ShapeBinder','ShapeBinder')
+        tshb.Support = [tool,'']
+        pshb = doc.addObject('PartDesign::ShapeBinder','ShapeBinder')
+        pshb.Support = [part,'']
+        tool = tshb
+        part = pshb
+        tool.recompute()
+        part.recompute()
 
         # common shape, which will be generated differently in different scenarios
         com = None
@@ -118,7 +122,7 @@ class StraightCut():
             while pat != None:
                 placement = placementSub(placement, pat.Placement)
                 pat = doc.getObject(pat.AttachedTo.split('#')[0])
-            temp = FreeCAD.ActiveDocument.addObject("Part::Feature", "TempBody")
+            temp = doc.addObject("Part::Feature", "TempBody")
             temp.Shape = tool.Shape
             if invert:
                 temp.Placement = placement.inverse()
@@ -139,11 +143,11 @@ class StraightCut():
         face = Part.Face(wire)
         extr = face.extrude(part.Placement.Rotation.multVec(FreeCAD.Vector(0, 0, cl)))
         cut = part.Shape.cut(extr)
-        part.Placement = pl
-        tool.Placement = placementAdd(tool.Placement, pl)
+        doc.removeObject(part.Name)
+        doc.removeObject(tool.Name)
         obj.Shape = cut
-        if getParent(obj) == None:
-            part.addObject(obj)
+        if obj.getParent() == None:
+            obj.Part.getParent().addObject(obj)
 
 class ViewProviderStraightCut:
     def __init__(self, obj):
