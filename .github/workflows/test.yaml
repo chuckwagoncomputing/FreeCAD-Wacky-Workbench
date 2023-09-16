@@ -39,6 +39,8 @@ jobs:
         mv Assembly4 ~/.local/share/FreeCAD/Mod
         realpath ~/.local/share/FreeCAD/Mod
         ls ~/.local/share/FreeCAD/Mod
+        echo $PATH
+        ls -l /usr/local/bin/freecad
         freecad -c --dump-config
 
     - name: Run tests
