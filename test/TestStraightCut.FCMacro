@@ -123,8 +123,8 @@ class TestStraightCut(unittest.TestCase):
 		doc.recompute()
 		Gui.Selection.addSelection('Unnamed','Body')
 		Gui.ActiveDocument.ActiveView.setActiveObject('pdbody',b1)
-		Gui.activateWorkbench("WackyWorkbench")
 		Gui.Selection.addSelection('Unnamed','Body001')
+		Gui.activateWorkbench("WackyWorkbench")
 		Gui.runCommand('StraightCut',0)
 		v = b1.Shape.Volume
 		App.closeDocument(doc.Name)
@@ -136,8 +136,8 @@ class TestStraightCut(unittest.TestCase):
 		doc.recompute()
 		Gui.Selection.addSelection('Unnamed','Body')
 		Gui.ActiveDocument.ActiveView.setActiveObject('pdbody',b1)
-		Gui.activateWorkbench("WackyWorkbench")
 		Gui.Selection.addSelection('Unnamed','Body001')
+		Gui.activateWorkbench("WackyWorkbench")
 		Gui.runCommand('StraightCut',0)
 		v = b1.Shape.Volume
 		App.closeDocument(doc.Name)
@@ -150,8 +150,8 @@ class TestStraightCut(unittest.TestCase):
 		doc.recompute()
 		Gui.Selection.addSelection('Unnamed','Body')
 		Gui.ActiveDocument.ActiveView.setActiveObject('pdbody',b1)
-		Gui.activateWorkbench("WackyWorkbench")
 		Gui.Selection.addSelection('Unnamed','Body001')
+		Gui.activateWorkbench("WackyWorkbench")
 		Gui.runCommand('StraightCut',0)
 		v = b1.Shape.Volume
 		App.closeDocument(doc.Name)
@@ -164,8 +164,8 @@ class TestStraightCut(unittest.TestCase):
 		doc.recompute()
 		Gui.Selection.addSelection('Unnamed','Pad')
 		Gui.ActiveDocument.ActiveView.setActiveObject('pdbody',b1)
-		Gui.activateWorkbench("WackyWorkbench")
 		Gui.Selection.addSelection('Unnamed','Pad001')
+		Gui.activateWorkbench("WackyWorkbench")
 		Gui.runCommand('StraightCut',0)
 		v = b1.Shape.Volume
 		App.closeDocument(doc.Name)
