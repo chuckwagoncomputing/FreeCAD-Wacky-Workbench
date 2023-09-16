@@ -11,9 +11,14 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo add-apt-repository ppa:freecad-maintainers/freecad-stable
         sudo apt-get update
-        sudo apt-get install freecad xvfb
+        sudo apt-get install xvfb
+
+    - name: Install FreeCAD
+      run: |
+        wget https://github.com/FreeCAD/FreeCAD/releases/download/0.21.1/FreeCAD_0.21.1-Linux-x86_64.AppImage
+        chmod u+x FreeCAD_0.21.1-Linux-x86_64.AppImage
+        ln -s FreeCAD_0.21.1-Linux-x86_64.AppImage /usr/local/bin/freecad
 
     - name: Make Mod directory
       run: mkdir -p ~/.local/share/FreeCAD/Mod
@@ -34,7 +39,7 @@ jobs:
         mv Assembly4 ~/.local/share/FreeCAD/Mod
         realpath ~/.local/share/FreeCAD/Mod
         ls ~/.local/share/FreeCAD/Mod
-        freecadcmd --dump-config
+        freecad -c --dump-config
 
     - name: Run tests
       run: |
