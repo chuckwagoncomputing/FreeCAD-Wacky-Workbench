@@ -86,20 +86,17 @@ class StraightCut():
             FreeCAD.Console.PrintError("can't use selection")
             return
 
-        tshb = doc.addObject('PartDesign::ShapeBinder','ShapeBinder')
-        tshb.Support = [tool,'']
-        pshb = doc.addObject('PartDesign::ShapeBinder','ShapeBinder')
-        pshb.Support = [part,'']
-        tool = tshb
-        part = pshb
-        tool.recompute()
-        part.recompute()
-
         # common shape, which will be generated differently in different scenarios
         com = None
         pl = part.Placement
-        part.Placement = FreeCAD.Placement(FreeCAD.Vector(0,0,0),FreeCAD.Rotation(FreeCAD.Vector(0,0,1),0))
-        tool.Placement = placementSub(tool.Placement, pl)
+        ttb = doc.addObject("Part::Feature", "TempBody")
+        ttb.Shape = tool.Shape
+        ttb.Placement = placementSub(stool.Placement, pl)
+        ptb = doc.addObject("Part::Feature", "TempBody")
+        ptb.Shape = part.Shape
+        ptb.Placement = FreeCAD.Placement(FreeCAD.Vector(0,0,0),FreeCAD.Rotation(FreeCAD.Vector(0,0,1),0))
+        tool = ttb
+        part = ptb
         tool.recompute()
         part.recompute()
 
