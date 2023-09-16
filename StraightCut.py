@@ -59,7 +59,6 @@ class StraightCut():
                 return
         # Recomputation
         else:
-            return
             # Updating to tip of the body if we're not pointed at it anymore.
             tpart = getParent(obj.Part).Tip
             if tpart != obj.Part:
