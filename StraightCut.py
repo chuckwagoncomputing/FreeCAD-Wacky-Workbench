@@ -122,14 +122,11 @@ class StraightCut():
             while pat != None:
                 placement = placementSub(placement, pat.Placement)
                 pat = doc.getObject(pat.AttachedTo.split('#')[0])
-            temp = doc.addObject("Part::Feature", "TempBody")
-            temp.Shape = tool.Shape
             if invert:
-                temp.Placement = placement.inverse()
+                tool.Placement = placement.inverse()
             else:
-                temp.Placement = placement
-            com = part.Shape.common(temp.Shape)
-            doc.removeObject(temp.Name)
+                tool.Placement = placement
+            com = part.Shape.common(tool.Shape)
         comp = FreeCAD.ActiveDocument.addObject("Part::Feature", "Common")
         comp.Shape = com
         cl = comp.Shape.BoundBox.ZLength
