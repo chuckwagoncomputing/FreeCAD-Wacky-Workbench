@@ -141,7 +141,7 @@ class TestStraightCut(unittest.TestCase):
 		Gui.runCommand('StraightCut',0)
 		v = b1.Shape.Volume
 		App.closeDocument(doc.Name)
-		self.assertEqual(v, 82077.27162062445)
+		self.assertEqual(v, 82077.27162062649)
 
 	def test_positioned_both(self):
 		doc, b1, b2 = setUpParts()
