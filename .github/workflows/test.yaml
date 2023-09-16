@@ -41,7 +41,7 @@ jobs:
         ls ~/.local/share/FreeCAD/Mod
         echo $PATH
         ls -l /usr/local/bin/freecad
-        xvfb-run freecad -c --dump-config
+        #xvfb-run freecad -c --dump-config
 
     - name: Run tests
       run: |
