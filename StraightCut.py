@@ -55,8 +55,9 @@ class StraightCut():
         # Recomputation
         else:
             recompute = True
+            spart = obj.Part.getParent()
             # Updating to tip of the body if we're not pointed at it anymore.
-            tpart = obj.Part.getParent().Tip
+            tpart = spart.Tip
             if tpart != obj.Part:
                 if tpart != obj:
                     obj.Part = tpart
@@ -88,17 +89,17 @@ class StraightCut():
 
         # common shape, which will be generated differently in different scenarios
         com = None
-        pl = part.Placement
-        ttb = doc.addObject("Part::Feature", "TempBody")
-        ttb.Shape = tool.Shape
-        ttb.Placement = placementSub(stool.Placement, pl)
+        pl = spart.Placement
         ptb = doc.addObject("Part::Feature", "TempBody")
         ptb.Shape = part.Shape
         ptb.Placement = FreeCAD.Placement(FreeCAD.Vector(0,0,0),FreeCAD.Rotation(FreeCAD.Vector(0,0,1),0))
-        tool = ttb
+        ttb = doc.addObject("Part::Feature", "TempBody")
+        ttb.Shape = tool.Shape
+        ttb.Placement = tool.Placement
         part = ptb
-        tool.recompute()
+        tool = ttb
         part.recompute()
+        tool.recompute()
 
         # the easy mode
         if not linked:
