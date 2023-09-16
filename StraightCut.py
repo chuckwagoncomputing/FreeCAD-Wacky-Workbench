@@ -194,11 +194,11 @@ class AddStraightCut:
             'MenuText': 'Straight Cut',
             'Accel': "C",
             'ToolTip' : """
-                Make a straight cut through a body to fit an intersecting body
-                1. Select the body that needs to be cut
-                2. Select the intersecting body
-                3. Click this tool
-            """}
+Make a straight cut through a body to fit an intersecting body
+1. Select the body that needs to be cut
+2. Select the intersecting body
+3. Click this tool"""
+            }
 
   def Activated(self):
     doc = FreeCAD.ActiveDocument

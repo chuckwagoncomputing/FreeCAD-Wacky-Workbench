@@ -77,10 +77,10 @@ class AddExportDXF:
             'MenuText': 'Export DXF',
             'Accel': "E",
             'ToolTip' : """
-                Export a face to DXF, keeping it in sync with model changes
-                1. Select a face
-                2. Click this tool
-            """}
+Export a face to DXF, keeping it in sync with model changes
+1. Select a face
+2. Click this tool"""
+            }
 
   def Activated(self):
     FreeCADGui.Control.showDialog(ExportPanel())
