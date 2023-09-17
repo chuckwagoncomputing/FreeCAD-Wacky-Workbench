@@ -35,6 +35,7 @@ class StraightCut():
         stool = None
         linked = False
         recompute = False
+        keepLargest = False
         # Initial generation
         if obj.Part is None and obj.Tool is None:
             if len(sel) == 2:
@@ -149,7 +150,11 @@ class StraightCut():
         cut = part.Shape.cut(extr)
         doc.removeObject(part.Name)
         doc.removeObject(tool.Name)
-        obj.Shape = cut
+        if keepLargest:
+            shps = sorted(cut.SubShapes, key=lambda s: s.Volume)
+            obj.Shape = shps[-1]
+        else:
+            obj.Shape = cut
         if obj.getParent() == None:
             obj.Part.getParent().addObject(obj)
 
