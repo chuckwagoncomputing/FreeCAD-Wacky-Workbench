@@ -57,13 +57,6 @@ class StraightCut():
         else:
             recompute = True
             spart = obj.Part.getParent()
-            # Updating to tip of the body if we're not pointed at it anymore.
-            tpart = spart.Tip
-            if tpart != obj.Part:
-                if tpart != obj:
-                    obj.Part = tpart
-                else:
-                    obj.Part = obj.BaseFeature
             # If we have a link that points to the part (assume the same for tool)
             if obj.AttachedPart != "":
                 spart = doc.getObject(obj.AttachedPart)
