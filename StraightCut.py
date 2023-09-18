@@ -64,12 +64,17 @@ class StraightCut():
                 stool.recompute()
                 linked = True
 
+        if obj.TypeId == 'PartDesign::FeaturePython':
+            keepLargest = True
+
         # If the part and tool are a body (probably the case on inital creation)
         if obj.Part.TypeId == 'PartDesign::Body':
             part = obj.Part
             obj.Part = obj.Part.Tip
         elif obj.Part.isDerivedFrom('PartDesign::Feature'):
             part = obj.Part.getParent()
+        elif obj.Part.isDerivedFrom('Part::Feature'):
+            part = obj.Part
 
         if obj.Tool.isDerivedFrom('PartDesign::Feature'):
             obj.Tool = obj.Tool.getParent()
@@ -82,10 +87,6 @@ class StraightCut():
             shb.recompute()
             shb.Visibility = False
         tool = obj.Tool
-
-        if not obj.Part.isDerivedFrom('PartDesign::Feature') or not tool.TypeId == 'PartDesign::ShapeBinder':
-            FreeCAD.Console.PrintError("can't use selection")
-            return
 
         # common shape, which will be generated differently in different scenarios
         com = None
@@ -128,7 +129,7 @@ class StraightCut():
             else:
                 tool.Placement = placement
             com = part.Shape.common(tool.Shape)
-        comp = FreeCAD.ActiveDocument.addObject("Part::Feature", "Common")
+        comp = doc.addObject("Part::Feature", "Common")
         comp.Shape = com
         cl = comp.Shape.BoundBox.ZLength
         vec = part.Placement.Rotation.multVec(FreeCAD.Vector(0,0,1))
@@ -148,7 +149,7 @@ class StraightCut():
             obj.Shape = shps[-1]
         else:
             obj.Shape = cut
-        if obj.getParent() == None:
+        if obj.getParent() == None and obj.Part.getParent() != None:
             obj.Part.getParent().addObject(obj)
 
 class ViewProviderStraightCut:
@@ -163,6 +164,8 @@ class ViewProviderStraightCut:
     def claimChildren(self):
         objs = []
         objs.append(self.Object.Tool)
+        if self.Object.TypeId == 'Part::FeaturePython':
+            objs.append(self.Object.Part)
         return objs
 
     def updateData(self, fp, prop):
@@ -200,15 +203,26 @@ Make a straight cut through a body to fit an intersecting body
 
   def Activated(self):
     doc = FreeCAD.ActiveDocument
-    obj = doc.addObject('PartDesign::FeaturePython', "StraightCut")
     sel = FreeCADGui.Selection.getSelection()
+    if (sel[0].TypeId == 'PartDesign::Body' or \
+        sel[0].isDerivedFrom('PartDesign::Feature') or \
+        (sel[0].TypeId == 'App::Link' and sel[0].LinkedObject.TypeId == 'PartDesign::Body')) and \
+        (sel[1].TypeId == 'PartDesign::Body' or \
+        sel[1].isDerivedFrom('PartDesign::Feature') or \
+        (sel[1].TypeId == 'App::Link' and sel[1].LinkedObject.TypeId == 'PartDesign::Body')):
+        obj = doc.addObject('PartDesign::FeaturePython', "StraightCut")
+    elif sel[0].isDerivedFrom('Part::Feature') and sel[1].isDerivedFrom('Part::Feature'):
+        obj = doc.addObject('Part::FeaturePython', "StraightCut")
+    else:
+        FreeCAD.Console.PrintError("can't use selection")
+        return
     StraightCut(obj)
     ViewProviderStraightCut(obj.ViewObject)
     doc.recompute()
     return
 
   def IsActive(self):
-    if len(FreeCADGui.Selection.getSelection()) < 2 :
+    if len(FreeCADGui.Selection.getSelection()) != 2 :
       return False
     return True
 
