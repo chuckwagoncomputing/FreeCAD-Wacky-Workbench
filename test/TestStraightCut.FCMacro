@@ -97,6 +97,24 @@ def setUpBodies():
 	s2.Visibility = False
 	return doc, b1, b2
 
+def setUpParts():
+	doc = App.newDocument()
+	b1 = doc.addObject("Part::Box","Box")
+	b1.Label = "Cube"
+	doc.recompute()
+	b1.Length='100.00 mm'
+	b1.Width='100.00 mm'
+	b1.Height='10.00 mm'
+	b2 = doc.addObject("Part::Cylinder","Cylinder")
+	b2.Label = "Cylinder"
+	doc.recompute()
+	b2.Radius='10.00 mm'
+	b2.Height='50.00 mm'
+	b2.Angle='360.00 °'
+	b2.FirstAngle='0.00 °'
+	b2.SecondAngle='0.00 °'
+	return doc, b1, b2
+
 class TestStraightCut(unittest.TestCase):
 	def tearDown(self):
 		global status
@@ -308,6 +326,34 @@ class TestStraightCut(unittest.TestCase):
 		v = b1.Shape.Volume
 		App.closeDocument(doc.Name)
 		self.assertAlmostEqual(v, 87457.96524147251, 7)
+
+	def test_part_positioned_base(self):
+		doc, b1, b2 = setUpParts()
+		b2.Placement = App.Placement(App.Vector(45.00,50.00,-15.00),App.Rotation(App.Vector(0.90,-0.40,0.10),45.00))
+		doc.recompute()
+		Gui.Selection.clearSelection()
+		Gui.Selection.addSelection('Unnamed','Box')
+		Gui.Selection.addSelection('Unnamed','Cylinder')
+		Gui.activateWorkbench("WackyWorkbench")
+		Gui.runCommand('StraightCut',0)
+		doc.recompute()
+		v = doc.getObject("StraightCut").Shape.Volume
+		App.closeDocument(doc.Name)
+		self.assertAlmostEqual(v, 93592.68786834327, 7)
+
+	def test_part_positioned_tool(self):
+		doc, b1, b2 = setUpParts()
+		b1.Placement = App.Placement(App.Vector(-45.00,-50.00,-45.00),App.Rotation(App.Vector(0.90,-0.40,0.10),45.00))
+		doc.recompute()
+		Gui.Selection.clearSelection()
+		Gui.Selection.addSelection('Unnamed','Box')
+		Gui.Selection.addSelection('Unnamed','Cylinder')
+		Gui.activateWorkbench("WackyWorkbench")
+		Gui.runCommand('StraightCut',0)
+		doc.recompute()
+		v = doc.getObject("StraightCut").Shape.Volume
+		App.closeDocument(doc.Name)
+		self.assertAlmostEqual(v, 93592.68786813301, 7)
 
 Test.runTestsFromClass(TestStraightCut)
 exit(status)

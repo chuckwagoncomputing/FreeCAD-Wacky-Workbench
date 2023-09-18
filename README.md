@@ -7,6 +7,7 @@ You can use this on:
 - two PartDesign Bodies
 - two PartDesign Features
 - two PartDesign Body links in Assembly4
+- two Parts
 
 ## ExportDXF
 Automatically re-export a face as DXF whenever the model changes
