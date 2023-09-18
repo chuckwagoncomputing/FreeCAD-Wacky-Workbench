@@ -37,7 +37,7 @@ class StraightCut():
         linked = False
         recompute = False
         keepLargest = False
-        debug = True
+        debug = False
         # Initial generation
         if obj.Part is None and obj.Tool is None:
             if len(sel) == 2:
@@ -92,7 +92,7 @@ class StraightCut():
 
         # common shape, which will be generated differently in different scenarios
         com = None
-        pl = part.Placement
+        pl = part.Placement.copy()
         ptb = doc.addObject("Part::Feature", "TempPart")
         ptb.Shape = obj.Part.Shape
         ptb.Placement = FreeCAD.Placement(FreeCAD.Vector(0,0,0),FreeCAD.Rotation(FreeCAD.Vector(0,0,1),0))
@@ -101,7 +101,7 @@ class StraightCut():
         if tool.TypeId == 'PartDesign::ShapeBinder':
             ttb.Placement = tool.Placement
         else:
-            tp = tool.Placement
+            tp = tool.Placement.copy()
             ttb.Placement = placementSub(tp, pl)
         part = ptb
         tool = ttb
@@ -159,6 +159,9 @@ class StraightCut():
             obj.Shape = cut
         if obj.getParent() == None and obj.Part.getParent() != None:
             obj.Part.getParent().addObject(obj)
+        else:
+            obj.Placement = pl
+            obj.Part.Visibility = False
 
 class ViewProviderStraightCut:
     def __init__(self, obj):
