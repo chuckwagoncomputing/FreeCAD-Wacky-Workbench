@@ -31,11 +31,13 @@ class StraightCut():
         sel = FreeCADGui.Selection.getSelection()
         # s[part|tool] = selected
         spart = None
-        tool = None
         stool = None
+        part = None
+        tool = None
         linked = False
         recompute = False
         keepLargest = False
+        debug = True
         # Initial generation
         if obj.Part is None and obj.Tool is None:
             if len(sel) == 2:
@@ -53,10 +55,10 @@ class StraightCut():
             else:
                 FreeCAD.Console.PrintError("Must select two bodies or links to bodies")
                 return
+
         # Recomputation
         else:
             recompute = True
-            spart = obj.Part.getParent()
             # If we have a link that points to the part (assume the same for tool)
             if obj.AttachedPart != "":
                 spart = doc.getObject(obj.AttachedPart)
@@ -64,39 +66,43 @@ class StraightCut():
                 stool.recompute()
                 linked = True
 
-        if obj.TypeId == 'PartDesign::FeaturePython':
-            keepLargest = True
-
-        # If the part and tool are a body (probably the case on inital creation)
-        if obj.Part.TypeId == 'PartDesign::Body':
-            part = obj.Part
-            obj.Part = obj.Part.Tip
-        elif obj.Part.isDerivedFrom('PartDesign::Feature'):
+        if obj.Part.isDerivedFrom('PartDesign::Feature'):
             part = obj.Part.getParent()
+            if part.Tip == obj:
+                obj.Part = obj.BaseFeature
         elif obj.Part.isDerivedFrom('Part::Feature'):
             part = obj.Part
 
-        if obj.Tool.isDerivedFrom('PartDesign::Feature'):
-            obj.Tool = obj.Tool.getParent()
+        if not recompute:
+            if obj.Part.TypeId == 'PartDesign::Body':
+                obj.Part = obj.Part.Tip
 
-        if obj.Tool.TypeId == 'PartDesign::Body':
-            shb = part.newObject('PartDesign::ShapeBinder','ShapeBinder')
-            shb.Support = [obj.Tool,'']
-            shb.TraceSupport = True
-            obj.Tool = shb
-            shb.recompute()
-            shb.Visibility = False
+            if obj.Tool.TypeId == 'PartDesign::Body' or obj.Tool.isDerivedFrom('PartDesign::Feature'):
+                shb = part.newObject('PartDesign::ShapeBinder','ShapeBinder')
+                shb.Support = [obj.Tool,'']
+                shb.TraceSupport = True
+                obj.Tool = shb
+                shb.recompute()
+                shb.Visibility = False
+
         tool = obj.Tool
+
+        if obj.TypeId == 'PartDesign::FeaturePython':
+            keepLargest = True
 
         # common shape, which will be generated differently in different scenarios
         com = None
-        pl = spart.Placement
+        pl = part.Placement
         ptb = doc.addObject("Part::Feature", "TempPart")
-        ptb.Shape = part.Shape
+        ptb.Shape = obj.Part.Shape
         ptb.Placement = FreeCAD.Placement(FreeCAD.Vector(0,0,0),FreeCAD.Rotation(FreeCAD.Vector(0,0,1),0))
         ttb = doc.addObject("Part::Feature", "TempTool")
         ttb.Shape = tool.Shape
-        ttb.Placement = tool.Placement
+        if tool.TypeId == 'PartDesign::ShapeBinder':
+            ttb.Placement = tool.Placement
+        else:
+            tp = tool.Placement
+            ttb.Placement = placementSub(tp, pl)
         part = ptb
         tool = ttb
         part.recompute()
@@ -137,13 +143,15 @@ class StraightCut():
         view.recompute()
         shp = view.Shape
         wire = TechDraw.findOuterWire(shp.Edges)
-        doc.removeObject(view.Name)
-        doc.removeObject(comp.Name)
+        if not debug:
+            doc.removeObject(view.Name)
+            doc.removeObject(comp.Name)
         face = Part.Face(wire)
         extr = face.extrude(part.Placement.Rotation.multVec(FreeCAD.Vector(0, 0, cl)))
         cut = part.Shape.cut(extr)
-        doc.removeObject(part.Name)
-        doc.removeObject(tool.Name)
+        if not debug:
+            doc.removeObject(part.Name)
+            doc.removeObject(tool.Name)
         if keepLargest:
             shps = sorted(cut.SubShapes, key=lambda s: s.Volume)
             obj.Shape = shps[-1]
