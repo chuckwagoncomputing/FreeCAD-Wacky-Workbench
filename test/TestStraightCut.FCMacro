@@ -126,6 +126,7 @@ class TestStraightCut(unittest.TestCase):
 		Gui.Selection.addSelection('Unnamed','Body001')
 		Gui.activateWorkbench("WackyWorkbench")
 		Gui.runCommand('StraightCut',0)
+		doc.recompute()
 		v = b1.Shape.Volume
 		App.closeDocument(doc.Name)
 		self.assertAlmostEqual(v, 81923.91622644056, 7)
@@ -139,6 +140,7 @@ class TestStraightCut(unittest.TestCase):
 		Gui.Selection.addSelection('Unnamed','Body001')
 		Gui.activateWorkbench("WackyWorkbench")
 		Gui.runCommand('StraightCut',0)
+		doc.recompute()
 		v = b1.Shape.Volume
 		App.closeDocument(doc.Name)
 		self.assertAlmostEqual(v, 82077.27162062649, 7)
@@ -153,6 +155,7 @@ class TestStraightCut(unittest.TestCase):
 		Gui.Selection.addSelection('Unnamed','Body001')
 		Gui.activateWorkbench("WackyWorkbench")
 		Gui.runCommand('StraightCut',0)
+		doc.recompute()
 		v = b1.Shape.Volume
 		App.closeDocument(doc.Name)
 		self.assertAlmostEqual(v, 81923.91622644138, 7)
@@ -167,6 +170,7 @@ class TestStraightCut(unittest.TestCase):
 		Gui.Selection.addSelection('Unnamed','Pad001')
 		Gui.activateWorkbench("WackyWorkbench")
 		Gui.runCommand('StraightCut',0)
+		doc.recompute()
 		v = b1.Shape.Volume
 		App.closeDocument(doc.Name)
 		self.assertAlmostEqual(v, 81923.91622644138, 7)
@@ -233,6 +237,7 @@ class TestStraightCut(unittest.TestCase):
 		Gui.Selection.addSelection('Unnamed','Assembly','Tool.')
 		Gui.activateWorkbench("WackyWorkbench")
 		Gui.runCommand('StraightCut',0)
+		doc.recompute()
 		v = b1.Shape.Volume
 		App.closeDocument(doc.Name)
 		self.assertAlmostEqual(v, 87457.9652414781, 7)
@@ -299,6 +304,7 @@ class TestStraightCut(unittest.TestCase):
 		Gui.Selection.addSelection('Unnamed','Assembly','Tool.')
 		Gui.activateWorkbench("WackyWorkbench")
 		Gui.runCommand('StraightCut',0)
+		doc.recompute()
 		v = b1.Shape.Volume
 		App.closeDocument(doc.Name)
 		self.assertAlmostEqual(v, 87457.96524147251, 7)
