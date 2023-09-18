@@ -15,8 +15,41 @@ import placeLinkCmd
 
 status = 0
 
-def setUpBodies():
-	doc = App.newDocument()
+def setUpBodyTool(doc):
+	b2 = doc.addObject('PartDesign::Body','Body001')
+	b2.Label = 'Body'
+	doc.recompute()
+	s2 = b2.newObject('Sketcher::SketchObject','Sketch001')
+	s2.Support = (doc.getObject('XY_Plane001'),[''])
+	s2.MapMode = 'FlatFace'
+	doc.recompute()
+	s2.addGeometry(Part.Circle(App.Vector(0.000000,0.000000,0),App.Vector(0,0,1),17.323547),False)
+	s2.addConstraint(Sketcher.Constraint('Coincident',0,3,-1,1))
+	doc.recompute()
+	doc.recompute()
+	p2 = b2.newObject('PartDesign::Pad','Pad001')
+	p2.Profile = s2
+	p2.Length = 10
+	doc.recompute()
+	p2.ReferenceAxis = (s2,['N_Axis'])
+	s2.Visibility = False
+	doc.recompute()
+	p2.Length = 60.000000
+	p2.TaperAngle = 0.000000
+	p2.UseCustomVector = 0
+	p2.Direction = (0, 0, 1)
+	p2.ReferenceAxis = (s2, ['N_Axis'])
+	p2.AlongSketchNormal = 1
+	p2.Type = 0
+	p2.UpToFace = None
+	p2.Reversed = 0
+	p2.Midplane = 0
+	p2.Offset = 0
+	doc.recompute()
+	s2.Visibility = False
+	return b2
+
+def setUpBodyBase(doc):
 	b1 = doc.addObject('PartDesign::Body','Body')
 	b1.Label = 'Body'
 	doc.recompute()
@@ -64,47 +97,18 @@ def setUpBodies():
 	p1.Offset = 0
 	doc.recompute()
 	s1.Visibility = False
-	b2 = doc.addObject('PartDesign::Body','Body001')
-	b2.Label = 'Body'
-	doc.recompute()
-	s2 = b2.newObject('Sketcher::SketchObject','Sketch001')
-	s2.Support = (doc.getObject('XY_Plane001'),[''])
-	s2.MapMode = 'FlatFace'
-	doc.recompute()
-	s2.addGeometry(Part.Circle(App.Vector(0.000000,0.000000,0),App.Vector(0,0,1),17.323547),False)
-	s2.addConstraint(Sketcher.Constraint('Coincident',0,3,-1,1))
-	doc.recompute()
-	doc.recompute()
-	p2 = b2.newObject('PartDesign::Pad','Pad001')
-	p2.Profile = s2
-	p2.Length = 10
-	doc.recompute()
-	p2.ReferenceAxis = (s2,['N_Axis'])
-	s2.Visibility = False
-	doc.recompute()
-	p2.Length = 60.000000
-	p2.TaperAngle = 0.000000
-	p2.UseCustomVector = 0
-	p2.Direction = (0, 0, 1)
-	p2.ReferenceAxis = (s2, ['N_Axis'])
-	p2.AlongSketchNormal = 1
-	p2.Type = 0
-	p2.UpToFace = None
-	p2.Reversed = 0
-	p2.Midplane = 0
-	p2.Offset = 0
-	doc.recompute()
-	s2.Visibility = False
-	return doc, b1, b2
+	return b1
 
-def setUpParts():
-	doc = App.newDocument()
+def setUpPartBase(doc):
 	b1 = doc.addObject("Part::Box","Box")
 	b1.Label = "Cube"
 	doc.recompute()
 	b1.Length='100.00 mm'
 	b1.Width='100.00 mm'
 	b1.Height='10.00 mm'
+	return b1
+
+def setUpPartTool(doc):
 	b2 = doc.addObject("Part::Cylinder","Cylinder")
 	b2.Label = "Cylinder"
 	doc.recompute()
@@ -113,7 +117,7 @@ def setUpParts():
 	b2.Angle='360.00 °'
 	b2.FirstAngle='0.00 °'
 	b2.SecondAngle='0.00 °'
-	return doc, b1, b2
+	return b2
 
 class TestStraightCut(unittest.TestCase):
 	def tearDown(self):
@@ -136,7 +140,9 @@ class TestStraightCut(unittest.TestCase):
 					App.Console.PrintMessage("\n\n%s: %s\n     %s" % (typ, self.id(), msg))
 
 	def test_positioned_tool(self):
-		doc, b1, b2 = setUpBodies()
+		doc = App.newDocument()
+		b1 = setUpBodyBase(doc)
+		b2 = setUpBodyTool(doc)
 		b2.Placement = App.Placement(App.Vector(35,50,-20),App.Rotation(App.Vector(15,30,1),45))
 		doc.recompute()
 		Gui.Selection.addSelection('Unnamed','Body')
@@ -150,7 +156,9 @@ class TestStraightCut(unittest.TestCase):
 		self.assertAlmostEqual(v, 81923.91622644056, 7)
 
 	def test_positioned_base(self):
-		doc, b1, b2 = setUpBodies()
+		doc = App.newDocument()
+		b1 = setUpBodyBase(doc)
+		b2 = setUpBodyTool(doc)
 		b1.Placement = App.Placement(App.Vector(-35,-50,25),App.Rotation(App.Vector(15,30,1),45))
 		doc.recompute()
 		Gui.Selection.addSelection('Unnamed','Body')
@@ -164,7 +172,9 @@ class TestStraightCut(unittest.TestCase):
 		self.assertAlmostEqual(v, 82077.27162062649, 7)
 
 	def test_positioned_both(self):
-		doc, b1, b2 = setUpBodies()
+		doc = App.newDocument()
+		b1 = setUpBodyBase(doc)
+		b2 = setUpBodyTool(doc)
 		b1.Placement = App.Placement(App.Vector(10,10,0),App.Rotation(App.Vector(0,0,1),0))
 		b2.Placement = App.Placement(App.Vector(35,50,-20),App.Rotation(App.Vector(15,30,1),45))
 		doc.recompute()
@@ -179,7 +189,9 @@ class TestStraightCut(unittest.TestCase):
 		self.assertAlmostEqual(v, 81923.91622644138, 7)
 
 	def test_features_positioned_both(self):
-		doc, b1, b2 = setUpBodies()
+		doc = App.newDocument()
+		b1 = setUpBodyBase(doc)
+		b2 = setUpBodyTool(doc)
 		b1.Placement = App.Placement(App.Vector(10,10,0),App.Rotation(App.Vector(0,0,1),0))
 		b2.Placement = App.Placement(App.Vector(35,50,-20),App.Rotation(App.Vector(15,30,1),45))
 		doc.recompute()
@@ -194,7 +206,9 @@ class TestStraightCut(unittest.TestCase):
 		self.assertAlmostEqual(v, 81923.91622644138, 7)
 
 	def test_assembly_tool(self):
-		doc, b1, b2 = setUpBodies()
+		doc = App.newDocument()
+		b1 = setUpBodyBase(doc)
+		b2 = setUpBodyTool(doc)
 		Gui.activateWorkbench("Assembly4Workbench")
 		Gui.runCommand('Asm4_newAssembly',0)
 		Gui.Selection.clearSelection()
@@ -261,7 +275,9 @@ class TestStraightCut(unittest.TestCase):
 		self.assertAlmostEqual(v, 87457.9652414781, 7)
 
 	def test_assembly_base(self):
-		doc, b1, b2 = setUpBodies()
+		doc = App.newDocument()
+		b1 = setUpBodyBase(doc)
+		b2 = setUpBodyTool(doc)
 		Gui.activateWorkbench("Assembly4Workbench")
 		Gui.runCommand('Asm4_newAssembly',0)
 		Gui.Selection.clearSelection()
@@ -328,7 +344,9 @@ class TestStraightCut(unittest.TestCase):
 		self.assertAlmostEqual(v, 87457.96524147251, 7)
 
 	def test_part_positioned_base(self):
-		doc, b1, b2 = setUpParts()
+		doc = App.newDocument()
+		b1 = setUpPartBase(doc)
+		b2 = setUpPartTool(doc)
 		b2.Placement = App.Placement(App.Vector(45.00,50.00,-15.00),App.Rotation(App.Vector(0.90,-0.40,0.10),45.00))
 		doc.recompute()
 		Gui.Selection.clearSelection()
@@ -342,7 +360,9 @@ class TestStraightCut(unittest.TestCase):
 		self.assertAlmostEqual(v, 93592.68786834327, 7)
 
 	def test_part_positioned_tool(self):
-		doc, b1, b2 = setUpParts()
+		doc = App.newDocument()
+		b1 = setUpPartBase(doc)
+		b2 = setUpPartTool(doc)
 		b1.Placement = App.Placement(App.Vector(-45.00,-50.00,-45.00),App.Rotation(App.Vector(0.90,-0.40,0.10),45.00))
 		doc.recompute()
 		Gui.Selection.clearSelection()
