@@ -15,7 +15,7 @@ import placeLinkCmd
 
 status = 0
 
-def setUpParts():
+def setUpBodies():
 	doc = App.newDocument()
 	b1 = doc.addObject('PartDesign::Body','Body')
 	b1.Label = 'Body'
@@ -118,7 +118,7 @@ class TestStraightCut(unittest.TestCase):
 					App.Console.PrintMessage("\n\n%s: %s\n     %s" % (typ, self.id(), msg))
 
 	def test_positioned_tool(self):
-		doc, b1, b2 = setUpParts()
+		doc, b1, b2 = setUpBodies()
 		b2.Placement = App.Placement(App.Vector(35,50,-20),App.Rotation(App.Vector(15,30,1),45))
 		doc.recompute()
 		Gui.Selection.addSelection('Unnamed','Body')
@@ -132,7 +132,7 @@ class TestStraightCut(unittest.TestCase):
 		self.assertAlmostEqual(v, 81923.91622644056, 7)
 
 	def test_positioned_part(self):
-		doc, b1, b2 = setUpParts()
+		doc, b1, b2 = setUpBodies()
 		b1.Placement = App.Placement(App.Vector(-35,-50,25),App.Rotation(App.Vector(15,30,1),45))
 		doc.recompute()
 		Gui.Selection.addSelection('Unnamed','Body')
@@ -146,7 +146,7 @@ class TestStraightCut(unittest.TestCase):
 		self.assertAlmostEqual(v, 82077.27162062649, 7)
 
 	def test_positioned_both(self):
-		doc, b1, b2 = setUpParts()
+		doc, b1, b2 = setUpBodies()
 		b1.Placement = App.Placement(App.Vector(10,10,0),App.Rotation(App.Vector(0,0,1),0))
 		b2.Placement = App.Placement(App.Vector(35,50,-20),App.Rotation(App.Vector(15,30,1),45))
 		doc.recompute()
@@ -161,7 +161,7 @@ class TestStraightCut(unittest.TestCase):
 		self.assertAlmostEqual(v, 81923.91622644138, 7)
 
 	def test_positioned_both_features(self):
-		doc, b1, b2 = setUpParts()
+		doc, b1, b2 = setUpBodies()
 		b1.Placement = App.Placement(App.Vector(10,10,0),App.Rotation(App.Vector(0,0,1),0))
 		b2.Placement = App.Placement(App.Vector(35,50,-20),App.Rotation(App.Vector(15,30,1),45))
 		doc.recompute()
@@ -176,7 +176,7 @@ class TestStraightCut(unittest.TestCase):
 		self.assertAlmostEqual(v, 81923.91622644138, 7)
 
 	def test_assembly_tool(self):
-		doc, b1, b2 = setUpParts()
+		doc, b1, b2 = setUpBodies()
 		Gui.activateWorkbench("Assembly4Workbench")
 		Gui.runCommand('Asm4_newAssembly',0)
 		Gui.Selection.clearSelection()
@@ -243,7 +243,7 @@ class TestStraightCut(unittest.TestCase):
 		self.assertAlmostEqual(v, 87457.9652414781, 7)
 
 	def test_assembly_part(self):
-		doc, b1, b2 = setUpParts()
+		doc, b1, b2 = setUpBodies()
 		Gui.activateWorkbench("Assembly4Workbench")
 		Gui.runCommand('Asm4_newAssembly',0)
 		Gui.Selection.clearSelection()
