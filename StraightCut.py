@@ -19,38 +19,38 @@ def placementAdd(a, b):
 class StraightCut():
     def __init__(self, obj):
         self.Type = "straightcut"
-        obj.addProperty("App::PropertyLink", "Part", "StraightCut", "Object to be cut")
-        obj.addProperty("App::PropertyLink", "Tool", "StraightCut", "Object which which the part intersects")
+        obj.addProperty("App::PropertyLink", "Base", "StraightCut", "Object to be cut")
+        obj.addProperty("App::PropertyLink", "Tool", "StraightCut", "Object which which the base intersects")
         # Very hacky storing as strings to avoid loops.
-        obj.addProperty("App::PropertyString", "AttachedPart", "StraightCut", "Object which links to Part")
+        obj.addProperty("App::PropertyString", "AttachedBase", "StraightCut", "Object which links to Base")
         obj.addProperty("App::PropertyString", "AttachedTool", "StraightCut", "Object which links to Tool")
         obj.Proxy = self
 
     def execute(self, obj):
         doc = FreeCAD.ActiveDocument
         sel = FreeCADGui.Selection.getSelection()
-        # s[part|tool] = selected
-        spart = None
+        # s[base|tool] = selected
+        sbase = None
         stool = None
-        part = None
+        base = None
         tool = None
         linked = False
         recompute = False
         keepLargest = False
         debug = False
         # Initial generation
-        if obj.Part is None and obj.Tool is None:
+        if obj.Base is None and obj.Tool is None:
             if len(sel) == 2:
-                spart = sel[0]
+                sbase = sel[0]
                 stool = sel[1]
-                if spart.TypeId == 'App::Link' and stool.TypeId == 'App::Link':
-                    obj.AttachedPart = spart.Name
-                    obj.Part = spart.LinkedObject
+                if sbase.TypeId == 'App::Link' and stool.TypeId == 'App::Link':
+                    obj.AttachedBase = sbase.Name
+                    obj.Base = sbase.LinkedObject
                     obj.AttachedTool = stool.Name
                     obj.Tool = stool.LinkedObject
                     linked = True
                 else:
-                    obj.Part = spart
+                    obj.Base = sbase
                     obj.Tool = stool
             else:
                 FreeCAD.Console.PrintError("Must select two bodies or links to bodies")
@@ -59,26 +59,26 @@ class StraightCut():
         # Recomputation
         else:
             recompute = True
-            # If we have a link that points to the part (assume the same for tool)
-            if obj.AttachedPart != "":
-                spart = doc.getObject(obj.AttachedPart)
+            # If we have a link that points to the base (assume the same for tool)
+            if obj.AttachedBase != "":
+                sbase = doc.getObject(obj.AttachedBase)
                 stool = doc.getObject(obj.AttachedTool)
                 stool.recompute()
                 linked = True
 
-        if obj.Part.isDerivedFrom('PartDesign::Feature'):
-            part = obj.Part.getParent()
-            if part.Tip == obj:
-                obj.Part = obj.BaseFeature
-        elif obj.Part.isDerivedFrom('Part::Feature'):
-            part = obj.Part
+        if obj.Base.isDerivedFrom('PartDesign::Feature'):
+            base = obj.Base.getParent()
+            if base.Tip == obj:
+                obj.Base = obj.BaseFeature
+        elif obj.Base.isDerivedFrom('Part::Feature'):
+            base = obj.Base
 
         if not recompute:
-            if obj.Part.TypeId == 'PartDesign::Body':
-                obj.Part = obj.Part.Tip
+            if obj.Base.TypeId == 'PartDesign::Body':
+                obj.Base = obj.Base.Tip
 
             if obj.Tool.TypeId == 'PartDesign::Body' or obj.Tool.isDerivedFrom('PartDesign::Feature'):
-                shb = part.newObject('PartDesign::ShapeBinder','ShapeBinder')
+                shb = base.newObject('PartDesign::ShapeBinder','ShapeBinder')
                 shb.Support = [obj.Tool,'']
                 shb.TraceSupport = True
                 obj.Tool = shb
@@ -92,9 +92,9 @@ class StraightCut():
 
         # common shape, which will be generated differently in different scenarios
         com = None
-        pl = part.Placement.copy()
-        ptb = doc.addObject("Part::Feature", "TempPart")
-        ptb.Shape = obj.Part.Shape
+        pl = base.Placement.copy()
+        ptb = doc.addObject("Part::Feature", "TempBase")
+        ptb.Shape = obj.Base.Shape
         ptb.Placement = FreeCAD.Placement(FreeCAD.Vector(0,0,0),FreeCAD.Rotation(FreeCAD.Vector(0,0,1),0))
         ttb = doc.addObject("Part::Feature", "TempTool")
         ttb.Shape = tool.Shape
@@ -103,24 +103,24 @@ class StraightCut():
         else:
             tp = tool.Placement.copy()
             ttb.Placement = placementSub(tp, pl)
-        part = ptb
+        base = ptb
         tool = ttb
-        part.recompute()
+        base.recompute()
         tool.recompute()
 
         # the easy mode
         if not linked:
-            com = part.Shape.common(tool.Shape)
+            com = base.Shape.common(tool.Shape)
         # the hard mode
         else:
             attached = None
             invert = False
             # we have to figure out which was attached to which
-            # sometimes the part can be attached to the tool
-            if spart.AttachedTo.split('#')[0] == stool.Name:
-                attached = spart
+            # sometimes the base can be attached to the tool
+            if sbase.AttachedTo.split('#')[0] == stool.Name:
+                attached = sbase
                 invert = True
-            elif stool.AttachedTo.split('#')[0] == spart.Name:
+            elif stool.AttachedTo.split('#')[0] == sbase.Name:
                 attached = stool
             else:
                 FreeCAD.Console.PrintError("not attached")
@@ -134,11 +134,11 @@ class StraightCut():
                 tool.Placement = placement.inverse()
             else:
                 tool.Placement = placement
-            com = part.Shape.common(tool.Shape)
+            com = base.Shape.common(tool.Shape)
         comp = doc.addObject("Part::Feature", "Common")
         comp.Shape = com
         cl = comp.Shape.BoundBox.ZLength
-        vec = part.Placement.Rotation.multVec(FreeCAD.Vector(0,0,1))
+        vec = base.Placement.Rotation.multVec(FreeCAD.Vector(0,0,1))
         view = Draft.makeShape2DView(comp, vec)
         view.recompute()
         shp = view.Shape
@@ -147,21 +147,21 @@ class StraightCut():
             doc.removeObject(view.Name)
             doc.removeObject(comp.Name)
         face = Part.Face(wire)
-        extr = face.extrude(part.Placement.Rotation.multVec(FreeCAD.Vector(0, 0, cl)))
-        cut = part.Shape.cut(extr)
+        extr = face.extrude(base.Placement.Rotation.multVec(FreeCAD.Vector(0, 0, cl)))
+        cut = base.Shape.cut(extr)
         if not debug:
-            doc.removeObject(part.Name)
+            doc.removeObject(base.Name)
             doc.removeObject(tool.Name)
         if keepLargest:
             shps = sorted(cut.SubShapes, key=lambda s: s.Volume)
             obj.Shape = shps[-1]
         else:
             obj.Shape = cut
-        if obj.getParent() == None and obj.Part.getParent() != None:
-            obj.Part.getParent().addObject(obj)
+        if obj.getParent() == None and obj.Base.getParent() != None:
+            obj.Base.getParent().addObject(obj)
         else:
             obj.Placement = pl
-            obj.Part.Visibility = False
+            obj.Base.Visibility = False
 
 class ViewProviderStraightCut:
     def __init__(self, obj):
@@ -176,7 +176,7 @@ class ViewProviderStraightCut:
         objs = []
         objs.append(self.Object.Tool)
         if self.Object.TypeId == 'Part::FeaturePython':
-            objs.append(self.Object.Part)
+            objs.append(self.Object.Base)
         return objs
 
     def updateData(self, fp, prop):

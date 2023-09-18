@@ -149,7 +149,7 @@ class TestStraightCut(unittest.TestCase):
 		App.closeDocument(doc.Name)
 		self.assertAlmostEqual(v, 81923.91622644056, 7)
 
-	def test_positioned_part(self):
+	def test_positioned_base(self):
 		doc, b1, b2 = setUpBodies()
 		b1.Placement = App.Placement(App.Vector(-35,-50,25),App.Rotation(App.Vector(15,30,1),45))
 		doc.recompute()
@@ -178,7 +178,7 @@ class TestStraightCut(unittest.TestCase):
 		App.closeDocument(doc.Name)
 		self.assertAlmostEqual(v, 81923.91622644138, 7)
 
-	def test_positioned_both_features(self):
+	def test_features_positioned_both(self):
 		doc, b1, b2 = setUpBodies()
 		b1.Placement = App.Placement(App.Vector(10,10,0),App.Rotation(App.Vector(0,0,1),0))
 		b2.Placement = App.Placement(App.Vector(35,50,-20),App.Rotation(App.Vector(15,30,1),45))
@@ -260,7 +260,7 @@ class TestStraightCut(unittest.TestCase):
 		App.closeDocument(doc.Name)
 		self.assertAlmostEqual(v, 87457.9652414781, 7)
 
-	def test_assembly_part(self):
+	def test_assembly_base(self):
 		doc, b1, b2 = setUpBodies()
 		Gui.activateWorkbench("Assembly4Workbench")
 		Gui.runCommand('Asm4_newAssembly',0)
