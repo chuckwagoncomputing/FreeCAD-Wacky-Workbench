@@ -20,7 +20,8 @@ def setUpBodyTool(doc):
 	b2.Label = 'Body'
 	doc.recompute()
 	s2 = b2.newObject('Sketcher::SketchObject','Sketch001')
-	s2.Support = (doc.getObject('XY_Plane001'),[''])
+	pln = [o for o in b2.Origin.OutList if o.isDerivedFrom('App::Plane') and o.Placement.Rotation.isSame(App.Rotation(0,0,0,1), 1e-15)][0]
+	s2.Support = (pln,[''])
 	s2.MapMode = 'FlatFace'
 	doc.recompute()
 	s2.addGeometry(Part.Circle(App.Vector(0.000000,0.000000,0),App.Vector(0,0,1),17.323547),False)
@@ -54,7 +55,8 @@ def setUpBodyBase(doc):
 	b1.Label = 'Body'
 	doc.recompute()
 	s1 = b1.newObject('Sketcher::SketchObject','Sketch')
-	s1.Support = (doc.getObject('XY_Plane'),[''])
+	pln = [o for o in b1.Origin.OutList if o.isDerivedFrom('App::Plane') and o.Placement.Rotation.isSame(App.Rotation(0,0,0,1), 1e-15)][0]
+	s1.Support = (pln,[''])
 	s1.MapMode = 'FlatFace'
 	doc.recompute()
 	geoList = []
@@ -374,6 +376,38 @@ class TestStraightCut(unittest.TestCase):
 		v = doc.getObject("StraightCut").Shape.Volume
 		App.closeDocument(doc.Name)
 		self.assertAlmostEqual(v, 93592.68786813301, 7)
+
+	def test_mixed_part_body(self):
+		doc = App.newDocument()
+		b1 = setUpBodyBase(doc)
+		b2 = setUpPartTool(doc)
+		b2.Placement = App.Placement(App.Vector(35,50,-20),App.Rotation(App.Vector(15,30,1),45))
+		doc.recompute()
+		Gui.Selection.addSelection('Unnamed','Body')
+		Gui.ActiveDocument.ActiveView.setActiveObject('pdbody',b1)
+		Gui.Selection.addSelection('Unnamed','Cylinder')
+		Gui.activateWorkbench("WackyWorkbench")
+		Gui.runCommand('StraightCut',0)
+		doc.recompute()
+		v = b1.Shape.Volume
+		App.closeDocument(doc.Name)
+		self.assertAlmostEqual(v, 92426.03185588072, 7)
+
+	def test_mixed_body_part(self):
+		doc = App.newDocument()
+		b1 = setUpPartBase(doc)
+		b2 = setUpBodyTool(doc)
+		b2.Placement = App.Placement(App.Vector(35,50,-20),App.Rotation(App.Vector(15,30,1),45))
+		doc.recompute()
+		Gui.Selection.addSelection('Unnamed','Box')
+		Gui.ActiveDocument.ActiveView.setActiveObject('pdbody',b1)
+		Gui.Selection.addSelection('Unnamed','Body001')
+		Gui.activateWorkbench("WackyWorkbench")
+		Gui.runCommand('StraightCut',0)
+		doc.recompute()
+		v = doc.getObject("StraightCut").Shape.Volume
+		App.closeDocument(doc.Name)
+		self.assertAlmostEqual(v, 83209.41592770607, 7)
 
 Test.runTestsFromClass(TestStraightCut)
 exit(status)

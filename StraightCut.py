@@ -78,7 +78,10 @@ class StraightCut():
                 obj.Base = obj.Base.Tip
 
             if obj.Tool.TypeId == 'PartDesign::Body' or obj.Tool.isDerivedFrom('PartDesign::Feature'):
-                shb = base.newObject('PartDesign::ShapeBinder','ShapeBinder')
+                if base.TypeId == 'PartDesign::Body':
+                    shb = base.newObject('PartDesign::ShapeBinder','ShapeBinder')
+                else:
+                    shb = doc.addObject('PartDesign::ShapeBinder','ShapeBinder')
                 shb.Support = [obj.Tool,'']
                 shb.TraceSupport = True
                 obj.Tool = shb
@@ -215,12 +218,9 @@ Make a straight cut through a body to fit an intersecting body
   def Activated(self):
     doc = FreeCAD.ActiveDocument
     sel = FreeCADGui.Selection.getSelection()
-    if (sel[0].TypeId == 'PartDesign::Body' or \
+    if sel[0].TypeId == 'PartDesign::Body' or \
         sel[0].isDerivedFrom('PartDesign::Feature') or \
-        (sel[0].TypeId == 'App::Link' and sel[0].LinkedObject.TypeId == 'PartDesign::Body')) and \
-        (sel[1].TypeId == 'PartDesign::Body' or \
-        sel[1].isDerivedFrom('PartDesign::Feature') or \
-        (sel[1].TypeId == 'App::Link' and sel[1].LinkedObject.TypeId == 'PartDesign::Body')):
+        (sel[0].TypeId == 'App::Link' and sel[0].LinkedObject.TypeId == 'PartDesign::Body'):
         obj = doc.addObject('PartDesign::FeaturePython', "StraightCut")
     elif sel[0].isDerivedFrom('Part::Feature') and sel[1].isDerivedFrom('Part::Feature'):
         obj = doc.addObject('Part::FeaturePython', "StraightCut")
