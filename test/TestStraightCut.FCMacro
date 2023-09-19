@@ -409,5 +409,40 @@ class TestStraightCut(unittest.TestCase):
 		App.closeDocument(doc.Name)
 		self.assertAlmostEqual(v, 83209.41592770607, 7)
 
+	def test_mixed_body_feature(self):
+		doc = App.newDocument()
+		b1 = setUpBodyBase(doc)
+		b2 = setUpBodyTool(doc)
+		b1.Placement = App.Placement(App.Vector(10,10,0),App.Rotation(App.Vector(0,0,1),0))
+		b2.Placement = App.Placement(App.Vector(35,50,-20),App.Rotation(App.Vector(15,30,1),45))
+		doc.recompute()
+		Gui.Selection.addSelection('Unnamed','Body')
+		Gui.ActiveDocument.ActiveView.setActiveObject('pdbody',b1)
+		Gui.Selection.addSelection('Unnamed','Pad001')
+		Gui.activateWorkbench("WackyWorkbench")
+		Gui.runCommand('StraightCut',0)
+		doc.recompute()
+		v = b1.Shape.Volume
+		App.closeDocument(doc.Name)
+		self.assertAlmostEqual(v, 81923.91622644138, 7)
+
+	def test_mixed_feature_body(self):
+		doc = App.newDocument()
+		b1 = setUpBodyBase(doc)
+		b2 = setUpBodyTool(doc)
+		b1.Placement = App.Placement(App.Vector(10,10,0),App.Rotation(App.Vector(0,0,1),0))
+		b2.Placement = App.Placement(App.Vector(35,50,-20),App.Rotation(App.Vector(15,30,1),45))
+		doc.recompute()
+		Gui.Selection.addSelection('Unnamed','Pad')
+		Gui.ActiveDocument.ActiveView.setActiveObject('pdbody',b1)
+		Gui.Selection.addSelection('Unnamed','Body001')
+		Gui.activateWorkbench("WackyWorkbench")
+		Gui.runCommand('StraightCut',0)
+		doc.recompute()
+		v = b1.Shape.Volume
+		App.closeDocument(doc.Name)
+		self.assertAlmostEqual(v, 81923.91622644138, 7)
+
+
 Test.runTestsFromClass(TestStraightCut)
 exit(status)
