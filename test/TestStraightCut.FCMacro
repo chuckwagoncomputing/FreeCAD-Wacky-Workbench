@@ -18,47 +18,27 @@ status = 0
 def setUpBodyTool(doc):
 	b2 = doc.addObject('PartDesign::Body','Body001')
 	b2.Label = 'Body'
-	doc.recompute()
 	s2 = b2.newObject('Sketcher::SketchObject','Sketch001')
 	pln = [o for o in b2.Origin.OutList if o.isDerivedFrom('App::Plane') and o.Placement.Rotation.isSame(App.Rotation(0,0,0,1), 1e-15)][0]
 	s2.Support = (pln,[''])
 	s2.MapMode = 'FlatFace'
-	doc.recompute()
 	s2.addGeometry(Part.Circle(App.Vector(0.000000,0.000000,0),App.Vector(0,0,1),17.323547),False)
 	s2.addConstraint(Sketcher.Constraint('Coincident',0,3,-1,1))
-	doc.recompute()
-	doc.recompute()
 	p2 = b2.newObject('PartDesign::Pad','Pad001')
 	p2.Profile = s2
 	p2.Length = 10
-	doc.recompute()
 	p2.ReferenceAxis = (s2,['N_Axis'])
-	s2.Visibility = False
-	doc.recompute()
 	p2.Length = 60.000000
-	p2.TaperAngle = 0.000000
-	p2.UseCustomVector = 0
-	p2.Direction = (0, 0, 1)
-	p2.ReferenceAxis = (s2, ['N_Axis'])
-	p2.AlongSketchNormal = 1
-	p2.Type = 0
-	p2.UpToFace = None
-	p2.Reversed = 0
-	p2.Midplane = 0
-	p2.Offset = 0
 	doc.recompute()
-	s2.Visibility = False
 	return b2
 
 def setUpBodyBase(doc):
 	b1 = doc.addObject('PartDesign::Body','Body')
 	b1.Label = 'Body'
-	doc.recompute()
 	s1 = b1.newObject('Sketcher::SketchObject','Sketch')
 	pln = [o for o in b1.Origin.OutList if o.isDerivedFrom('App::Plane') and o.Placement.Rotation.isSame(App.Rotation(0,0,0,1), 1e-15)][0]
 	s1.Support = (pln,[''])
 	s1.MapMode = 'FlatFace'
-	doc.recompute()
 	geoList = []
 	geoList.append(Part.LineSegment(App.Vector(0.000000,0.000000,0),App.Vector(110.933342,0.000000,0)))
 	geoList.append(Part.LineSegment(App.Vector(110.933342,0.000000,0),App.Vector(110.933342,88.985420,0)))
@@ -66,6 +46,7 @@ def setUpBodyBase(doc):
 	geoList.append(Part.LineSegment(App.Vector(0.000000,88.985420,0),App.Vector(0.000000,0.000000,0)))
 	s1.addGeometry(geoList,False)
 	conList = []
+	conList.append(Sketcher.Constraint('Coincident',0,1,-1,1))
 	conList.append(Sketcher.Constraint('Coincident',0,2,1,1))
 	conList.append(Sketcher.Constraint('Coincident',1,2,2,1))
 	conList.append(Sketcher.Constraint('Coincident',2,2,3,1))
@@ -76,29 +57,12 @@ def setUpBodyBase(doc):
 	conList.append(Sketcher.Constraint('Vertical',3))
 	s1.addConstraint(conList)
 	del geoList, conList
-	s1.addConstraint(Sketcher.Constraint('Coincident',0,1,-1,1))
-	doc.recompute()
-	doc.recompute()
 	p1 = b1.newObject('PartDesign::Pad','Pad')
 	p1.Profile = s1
 	p1.Length = 10
-	doc.recompute()
 	p1.ReferenceAxis = (s1,['N_Axis'])
-	s1.Visibility = False
-	doc.recompute()
 	p1.Length = 10.000000
-	p1.TaperAngle = 0.000000
-	p1.UseCustomVector = 0
-	p1.Direction = (0, 0, 1)
-	p1.ReferenceAxis = (s1, ['N_Axis'])
-	p1.AlongSketchNormal = 1
-	p1.Type = 0
-	p1.UpToFace = None
-	p1.Reversed = 0
-	p1.Midplane = 0
-	p1.Offset = 0
 	doc.recompute()
-	s1.Visibility = False
 	return b1
 
 def setUpPartBase(doc):
@@ -215,35 +179,21 @@ class TestStraightCut(unittest.TestCase):
 		Gui.runCommand('Asm4_newAssembly',0)
 		Gui.Selection.clearSelection()
 		Gui.Selection.addSelection('Unnamed','Body')
-
 		c1 = doc.addObject('PartDesign::CoordinateSystem', 'LCS1')
 		b1.addObject(c1)
 		c1.AttachmentOffset = App.Placement()
-		c1.MapReversed = False
 		c1.Support = [(doc.getObject('X_Axis'),'')]
-		c1.MapPathParameter = 0.000000
 		c1.MapMode = 'ObjectXY'
-		c1.recompute()
 		c2 = doc.addObject('PartDesign::CoordinateSystem', 'LCS2')
 		b1.addObject(c2)
 		c2.AttachmentOffset = App.Placement(App.Vector(50, 30, -25),  App.Rotation(0, 20, 30))
-		c2.MapReversed = False
 		c2.Support = [(doc.getObject('X_Axis'),'')]
-		c2.MapPathParameter = 0.000000
 		c2.MapMode = 'ObjectXY'
-		c2.recompute()
-
 		c3 = doc.addObject('PartDesign::CoordinateSystem', 'LCS3')
 		b2.addObject(c3)
 		c3.AttachmentOffset = App.Placement()
-		c3.MapReversed = False
 		c3.Support = [(doc.getObject('X_Axis001'),'')]
-		c3.MapPathParameter = 0.000000
 		c3.MapMode = 'ObjectXY'
-		c3.recompute()
-
-		doc.recompute(None,True,True)
-
 		a = Asm4.getAssembly()
 		l1 = a.newObject('App::Link', 'Part')
 		l1.LinkedObject = b1
@@ -253,7 +203,6 @@ class TestStraightCut(unittest.TestCase):
 		l1.SolverId = 'Asm4EE'
 		expr = Asm4.makeExpressionPart( "Parent Assembly", None, "LCS_Origin", "Unnamed", "LCS1" )
 		l1.setExpression('Placement', expr)
-
 		l2 = a.newObject('App::Link', 'Tool')
 		l2.LinkedObject = b2
 		Asm4.makeAsmProperties(l2)
@@ -262,10 +211,6 @@ class TestStraightCut(unittest.TestCase):
 		l2.SolverId = 'Asm4EE'
 		expr = Asm4.makeExpressionPart( "Part", "Unnamed", "LCS2", "Unnamed", "LCS3" )
 		l2.setExpression('Placement', expr)
-
-		b1.Visibility = False
-		b2.Visibility = False
-
 		Gui.Selection.clearSelection()
 		Gui.Selection.addSelection('Unnamed','Assembly','Part.')
 		Gui.Selection.addSelection('Unnamed','Assembly','Tool.')
@@ -284,35 +229,21 @@ class TestStraightCut(unittest.TestCase):
 		Gui.runCommand('Asm4_newAssembly',0)
 		Gui.Selection.clearSelection()
 		Gui.Selection.addSelection('Unnamed','Body')
-
 		c1 = doc.addObject('PartDesign::CoordinateSystem', 'LCS1')
 		b1.addObject(c1)
 		c1.AttachmentOffset = App.Placement()
-		c1.MapReversed = False
 		c1.Support = [(doc.getObject('X_Axis'),'')]
-		c1.MapPathParameter = 0.000000
 		c1.MapMode = 'ObjectXY'
-		c1.recompute()
 		c2 = doc.addObject('PartDesign::CoordinateSystem', 'LCS2')
 		b1.addObject(c2)
 		c2.AttachmentOffset = App.Placement(App.Vector(50, 30, -25),  App.Rotation(0, 20, 30))
-		c2.MapReversed = False
 		c2.Support = [(doc.getObject('X_Axis'),'')]
-		c2.MapPathParameter = 0.000000
 		c2.MapMode = 'ObjectXY'
-		c2.recompute()
-
 		c3 = doc.addObject('PartDesign::CoordinateSystem', 'LCS3')
 		b2.addObject(c3)
 		c3.AttachmentOffset = App.Placement()
-		c3.MapReversed = False
 		c3.Support = [(doc.getObject('X_Axis001'),'')]
-		c3.MapPathParameter = 0.000000
 		c3.MapMode = 'ObjectXY'
-		c3.recompute()
-
-		doc.recompute(None,True,True)
-
 		a = Asm4.getAssembly()
 		l1 = a.newObject('App::Link', 'Tool')
 		l1.LinkedObject = b2
@@ -322,7 +253,6 @@ class TestStraightCut(unittest.TestCase):
 		l1.SolverId = 'Asm4EE'
 		expr = Asm4.makeExpressionPart( "Parent Assembly", None, "LCS_Origin", "Unnamed", "LCS3" )
 		l1.setExpression('Placement', expr)
-
 		l2 = a.newObject('App::Link', 'Part')
 		l2.LinkedObject = b1
 		Asm4.makeAsmProperties(l2)
@@ -331,10 +261,6 @@ class TestStraightCut(unittest.TestCase):
 		l2.SolverId = 'Asm4EE'
 		expr = Asm4.makeExpressionPart( "Tool", "Unnamed", "LCS3", "Unnamed", "LCS2" )
 		l2.setExpression('Placement', expr)
-
-		b1.Visibility = False
-		b2.Visibility = False
-
 		Gui.Selection.clearSelection()
 		Gui.Selection.addSelection('Unnamed','Assembly','Part.')
 		Gui.Selection.addSelection('Unnamed','Assembly','Tool.')
