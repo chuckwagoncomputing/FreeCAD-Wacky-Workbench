@@ -85,6 +85,12 @@ def setUpPartTool(doc):
 	b2.SecondAngle='0.00 °'
 	return b2
 
+def addLCS(b, n):
+	c = b.newObject('PartDesign::CoordinateSystem', n)
+	c.Support = [(b.Origin.OriginFeatures[0],'')]
+	c.MapMode = 'ObjectXY'
+	return c
+
 def setUpStdPart(doc):
 	p1 = doc.addObject('App::Part', "Part")
 	p1.Label = "Part"
@@ -185,19 +191,10 @@ class TestStraightCut(unittest.TestCase):
 		Gui.runCommand('Asm4_newAssembly',0)
 		Gui.Selection.clearSelection()
 		Gui.Selection.addSelection('Unnamed','Body')
-		c1 = doc.addObject('PartDesign::CoordinateSystem', 'LCS1')
-		b1.addObject(c1)
-		c1.Support = [(doc.getObject('X_Axis'),'')]
-		c1.MapMode = 'ObjectXY'
-		c2 = doc.addObject('PartDesign::CoordinateSystem', 'LCS2')
-		b1.addObject(c2)
+		c1 = addLCS(b1, 'LCS1')
+		c2 = addLCS(b1, 'LCS2')
 		c2.AttachmentOffset = App.Placement(App.Vector(50, 30, -25),  App.Rotation(0, 20, 30))
-		c2.Support = [(doc.getObject('X_Axis'),'')]
-		c2.MapMode = 'ObjectXY'
-		c3 = doc.addObject('PartDesign::CoordinateSystem', 'LCS3')
-		b2.addObject(c3)
-		c3.Support = [(doc.getObject('X_Axis001'),'')]
-		c3.MapMode = 'ObjectXY'
+		c3 = addLCS(b2, 'LCS3')
 		a = Asm4.getAssembly()
 		l1 = a.newObject('App::Link', 'Part')
 		l1.LinkedObject = b1
@@ -233,19 +230,10 @@ class TestStraightCut(unittest.TestCase):
 		Gui.runCommand('Asm4_newAssembly',0)
 		Gui.Selection.clearSelection()
 		Gui.Selection.addSelection('Unnamed','Body')
-		c1 = doc.addObject('PartDesign::CoordinateSystem', 'LCS1')
-		b1.addObject(c1)
-		c1.Support = [(doc.getObject('X_Axis'),'')]
-		c1.MapMode = 'ObjectXY'
-		c2 = doc.addObject('PartDesign::CoordinateSystem', 'LCS2')
-		b1.addObject(c2)
+		c1 = addLCS(b1, 'LCS1')
+		c2 = addLCS(b1, 'LCS2')
 		c2.AttachmentOffset = App.Placement(App.Vector(50, 30, -25),  App.Rotation(0, 20, 30))
-		c2.Support = [(doc.getObject('X_Axis'),'')]
-		c2.MapMode = 'ObjectXY'
-		c3 = doc.addObject('PartDesign::CoordinateSystem', 'LCS3')
-		b2.addObject(c3)
-		c3.Support = [(doc.getObject('X_Axis001'),'')]
-		c3.MapMode = 'ObjectXY'
+		c3 = addLCS(b2, 'LCS3')
 		a = Asm4.getAssembly()
 		l1 = a.newObject('App::Link', 'Tool')
 		l1.LinkedObject = b2
@@ -381,16 +369,10 @@ class TestStraightCut(unittest.TestCase):
 		b2 = setUpBodyTool(doc)
 		p1.addObject(b1)
 		p2.addObject(b2)
-		c1 = p1.newObject('PartDesign::CoordinateSystem','LCS1')
-		c1.Support = [(p1.Origin.OriginFeatures[0],'')]
-		c1.MapMode = 'ObjectXY'
-		c2 = p1.newObject('PartDesign::CoordinateSystem', 'LCS2')
+		c1 = addLCS(p1, 'LCS1')
+		c2 = addLCS(p1, 'LCS2')
 		c2.AttachmentOffset = App.Placement(App.Vector(50, 30, -25),  App.Rotation(0, 20, 30))
-		c2.Support = [(p1.Origin.OriginFeatures[0],'')]
-		c2.MapMode = 'ObjectXY'
-		c3 = p2.newObject('PartDesign::CoordinateSystem', 'LCS3')
-		c3.Support = [(p2.Origin.OriginFeatures[0],'')]
-		c3.MapMode = 'ObjectXY'
+		c3 = addLCS(p2, 'LCS3')
 		a = Asm4.getAssembly()
 		l1 = a.newObject('App::Link', 'Base')
 		l1.LinkedObject = p1
