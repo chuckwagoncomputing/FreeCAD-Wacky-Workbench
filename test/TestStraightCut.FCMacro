@@ -91,6 +91,17 @@ def addLCS(b, n):
 	c.MapMode = 'ObjectXY'
 	return c
 
+def addLink(p, n, a, o, c):
+	l = Asm4.getAssembly().newObject('App::Link', n)
+	l.LinkedObject = p
+	Asm4.makeAsmProperties(l)
+	l.AttachedBy = '#' + c
+	l.AttachedTo = a + '#' + o
+	l.SolverId = 'Asm4EE'
+	expr = Asm4.makeExpressionPart(a, None, o, "Unnamed", c )
+	l.setExpression('Placement', expr)
+	return l
+
 def setUpStdPart(doc):
 	p1 = doc.addObject('App::Part', "Part")
 	p1.Label = "Part"
@@ -195,23 +206,8 @@ class TestStraightCut(unittest.TestCase):
 		c2 = addLCS(b1, 'LCS2')
 		c2.AttachmentOffset = App.Placement(App.Vector(50, 30, -25),  App.Rotation(0, 20, 30))
 		c3 = addLCS(b2, 'LCS3')
-		a = Asm4.getAssembly()
-		l1 = a.newObject('App::Link', 'Part')
-		l1.LinkedObject = b1
-		Asm4.makeAsmProperties(l1)
-		l1.AttachedBy = '#LCS1'
-		l1.AttachedTo = 'Parent Assembly#LCS_Origin'
-		l1.SolverId = 'Asm4EE'
-		expr = Asm4.makeExpressionPart( "Parent Assembly", None, "LCS_Origin", "Unnamed", "LCS1" )
-		l1.setExpression('Placement', expr)
-		l2 = a.newObject('App::Link', 'Tool')
-		l2.LinkedObject = b2
-		Asm4.makeAsmProperties(l2)
-		l2.AttachedBy = '#LCS3'
-		l2.AttachedTo = 'Part#LCS2'
-		l2.SolverId = 'Asm4EE'
-		expr = Asm4.makeExpressionPart( "Part", "Unnamed", "LCS2", "Unnamed", "LCS3" )
-		l2.setExpression('Placement', expr)
+		l1 = addLink(b1, 'Part', 'Parent Assembly', 'LCS_Origin', 'LCS1')
+		l2 = addLink(b2, 'Tool', 'Part', 'LCS2', 'LCS3')
 		Gui.Selection.clearSelection()
 		Gui.Selection.addSelection('Unnamed','Assembly','Part.')
 		Gui.Selection.addSelection('Unnamed','Assembly','Tool.')
@@ -234,23 +230,8 @@ class TestStraightCut(unittest.TestCase):
 		c2 = addLCS(b1, 'LCS2')
 		c2.AttachmentOffset = App.Placement(App.Vector(50, 30, -25),  App.Rotation(0, 20, 30))
 		c3 = addLCS(b2, 'LCS3')
-		a = Asm4.getAssembly()
-		l1 = a.newObject('App::Link', 'Tool')
-		l1.LinkedObject = b2
-		Asm4.makeAsmProperties(l1)
-		l1.AttachedBy = '#LCS3'
-		l1.AttachedTo = 'Parent Assembly#LCS_Origin'
-		l1.SolverId = 'Asm4EE'
-		expr = Asm4.makeExpressionPart( "Parent Assembly", None, "LCS_Origin", "Unnamed", "LCS3" )
-		l1.setExpression('Placement', expr)
-		l2 = a.newObject('App::Link', 'Part')
-		l2.LinkedObject = b1
-		Asm4.makeAsmProperties(l2)
-		l2.AttachedBy = '#LCS2'
-		l2.AttachedTo = 'Tool#LCS3'
-		l2.SolverId = 'Asm4EE'
-		expr = Asm4.makeExpressionPart( "Tool", "Unnamed", "LCS3", "Unnamed", "LCS2" )
-		l2.setExpression('Placement', expr)
+		l1 = addLink(b2, 'Tool', 'Parent Assembly', 'LCS_Origin', 'LCS3')
+		l1 = addLink(b1, 'Part', 'Tool', 'LCS3', 'LCS2')
 		Gui.Selection.clearSelection()
 		Gui.Selection.addSelection('Unnamed','Assembly','Part.')
 		Gui.Selection.addSelection('Unnamed','Assembly','Tool.')
@@ -373,23 +354,8 @@ class TestStraightCut(unittest.TestCase):
 		c2 = addLCS(p1, 'LCS2')
 		c2.AttachmentOffset = App.Placement(App.Vector(50, 30, -25),  App.Rotation(0, 20, 30))
 		c3 = addLCS(p2, 'LCS3')
-		a = Asm4.getAssembly()
-		l1 = a.newObject('App::Link', 'Base')
-		l1.LinkedObject = p1
-		Asm4.makeAsmProperties(l1)
-		l1.AttachedBy = '#LCS1'
-		l1.AttachedTo = 'Parent Assembly#LCS_Origin'
-		l1.SolverId = 'Asm4EE'
-		expr = Asm4.makeExpressionPart( "Parent Assembly", None, "LCS_Origin", "Unnamed", "LCS1" )
-		l1.setExpression('Placement', expr)
-		l2 = a.newObject('App::Link', 'Tool')
-		l2.LinkedObject = p2
-		Asm4.makeAsmProperties(l2)
-		l2.AttachedBy = '#LCS3'
-		l2.AttachedTo = 'Base#LCS2'
-		l2.SolverId = 'Asm4EE'
-		expr = Asm4.makeExpressionPart( "Part", "Unnamed", "LCS2", "Unnamed", "LCS3" )
-		l2.setExpression('Placement', expr)
+		l1 = addLink(p1, 'Base', 'Parent Assembly', 'LCS_Origin', 'LCS1')
+		l2 = addLink(p2, 'Tool', 'Base', 'LCS2', 'LCS3')
 		Gui.Selection.clearSelection()
 		Gui.Selection.addSelection('Unnamed','Assembly','Base.Body.')
 		Gui.Selection.addSelection('Unnamed','Assembly','Tool.Body001.')
