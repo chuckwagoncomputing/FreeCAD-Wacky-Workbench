@@ -43,15 +43,39 @@ class StraightCut():
             if len(sel) == 2:
                 sbase = sel[0]
                 stool = sel[1]
-                if sbase.TypeId == 'App::Link' and stool.TypeId == 'App::Link':
+                lbase = None
+                ltool = None
+
+                if hasattr(doc, 'Assembly') and sbase.getParent():
+                    lbase = list(filter(lambda o: o.TypeId == 'App::Link' and \
+                        FreeCADGui.Selection.isSelected(doc.Assembly, o.Name + "." + sbase.Name + "."), sbase.getParent().InList))
+                if sbase.TypeId == 'App::Link':
                     obj.AttachedBase = sbase.Name
                     obj.Base = sbase.LinkedObject
-                    obj.AttachedTool = stool.Name
-                    obj.Tool = stool.LinkedObject
+                    linked = True
+                elif lbase:
+                    obj.AttachedBase = lbase[0].Name
+                    obj.Base = sbase
+                    sbase = lbase[0]
                     linked = True
                 else:
                     obj.Base = sbase
+
+                if hasattr(doc, 'Assembly') and stool.getParent():
+                    ltool = list(filter(lambda o: o.TypeId == 'App::Link' and \
+                        FreeCADGui.Selection.isSelected(doc.Assembly, o.Name + "." + stool.Name + "."), stool.getParent().InList))
+                if stool.TypeId == 'App::Link':
+                    obj.AttachedTool = stool.Name
+                    obj.Tool = stool.LinkedObject
+                    linked = True
+                elif ltool:
+                    obj.AttachedTool = ltool[0].Name
                     obj.Tool = stool
+                    stool = ltool[0]
+                    linked = True
+                else:
+                    obj.Tool = stool
+
             else:
                 FreeCAD.Console.PrintError("Must select two bodies or links to bodies")
                 return
@@ -177,7 +201,8 @@ class ViewProviderStraightCut:
 
     def claimChildren(self):
         objs = []
-        objs.append(self.Object.Tool)
+        if not (self.Object.TypeId == 'Part::FeaturePython' and self.Object.AttachedTool):
+            objs.append(self.Object.Tool)
         if self.Object.TypeId == 'Part::FeaturePython':
             objs.append(self.Object.Base)
         return objs
