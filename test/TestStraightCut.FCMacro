@@ -85,6 +85,12 @@ def setUpPartTool(doc):
 	b2.SecondAngle='0.00 °'
 	return b2
 
+def setUpStdPart(doc):
+	p1 = doc.addObject('App::Part', "Part")
+	p1.Label = "Part"
+	doc.getObject('Parts').addObject(p1)
+	return p1
+
 class TestStraightCut(unittest.TestCase):
 	def tearDown(self):
 		global status
@@ -181,7 +187,6 @@ class TestStraightCut(unittest.TestCase):
 		Gui.Selection.addSelection('Unnamed','Body')
 		c1 = doc.addObject('PartDesign::CoordinateSystem', 'LCS1')
 		b1.addObject(c1)
-		c1.AttachmentOffset = App.Placement()
 		c1.Support = [(doc.getObject('X_Axis'),'')]
 		c1.MapMode = 'ObjectXY'
 		c2 = doc.addObject('PartDesign::CoordinateSystem', 'LCS2')
@@ -191,7 +196,6 @@ class TestStraightCut(unittest.TestCase):
 		c2.MapMode = 'ObjectXY'
 		c3 = doc.addObject('PartDesign::CoordinateSystem', 'LCS3')
 		b2.addObject(c3)
-		c3.AttachmentOffset = App.Placement()
 		c3.Support = [(doc.getObject('X_Axis001'),'')]
 		c3.MapMode = 'ObjectXY'
 		a = Asm4.getAssembly()
@@ -231,7 +235,6 @@ class TestStraightCut(unittest.TestCase):
 		Gui.Selection.addSelection('Unnamed','Body')
 		c1 = doc.addObject('PartDesign::CoordinateSystem', 'LCS1')
 		b1.addObject(c1)
-		c1.AttachmentOffset = App.Placement()
 		c1.Support = [(doc.getObject('X_Axis'),'')]
 		c1.MapMode = 'ObjectXY'
 		c2 = doc.addObject('PartDesign::CoordinateSystem', 'LCS2')
@@ -241,7 +244,6 @@ class TestStraightCut(unittest.TestCase):
 		c2.MapMode = 'ObjectXY'
 		c3 = doc.addObject('PartDesign::CoordinateSystem', 'LCS3')
 		b2.addObject(c3)
-		c3.AttachmentOffset = App.Placement()
 		c3.Support = [(doc.getObject('X_Axis001'),'')]
 		c3.MapMode = 'ObjectXY'
 		a = Asm4.getAssembly()
@@ -368,6 +370,53 @@ class TestStraightCut(unittest.TestCase):
 		v = b1.Shape.Volume
 		App.closeDocument(doc.Name)
 		self.assertAlmostEqual(v, 81923.91622644138, 7)
+
+	def test_stdpart_body(self):
+		doc = App.newDocument()
+		Gui.activateWorkbench("Assembly4Workbench")
+		Gui.runCommand('Asm4_newAssembly',0)
+		p1 = setUpStdPart(doc)
+		p2 = setUpStdPart(doc)
+		b1 = setUpBodyBase(doc)
+		b2 = setUpBodyTool(doc)
+		p1.addObject(b1)
+		p2.addObject(b2)
+		c1 = p1.newObject('PartDesign::CoordinateSystem','LCS1')
+		c1.Support = [(p1.Origin.OriginFeatures[0],'')]
+		c1.MapMode = 'ObjectXY'
+		c2 = p1.newObject('PartDesign::CoordinateSystem', 'LCS2')
+		c2.AttachmentOffset = App.Placement(App.Vector(50, 30, -25),  App.Rotation(0, 20, 30))
+		c2.Support = [(p1.Origin.OriginFeatures[0],'')]
+		c2.MapMode = 'ObjectXY'
+		c3 = p2.newObject('PartDesign::CoordinateSystem', 'LCS3')
+		c3.Support = [(p2.Origin.OriginFeatures[0],'')]
+		c3.MapMode = 'ObjectXY'
+		a = Asm4.getAssembly()
+		l1 = a.newObject('App::Link', 'Base')
+		l1.LinkedObject = p1
+		Asm4.makeAsmProperties(l1)
+		l1.AttachedBy = '#LCS1'
+		l1.AttachedTo = 'Parent Assembly#LCS_Origin'
+		l1.SolverId = 'Asm4EE'
+		expr = Asm4.makeExpressionPart( "Parent Assembly", None, "LCS_Origin", "Unnamed", "LCS1" )
+		l1.setExpression('Placement', expr)
+		l2 = a.newObject('App::Link', 'Tool')
+		l2.LinkedObject = p2
+		Asm4.makeAsmProperties(l2)
+		l2.AttachedBy = '#LCS3'
+		l2.AttachedTo = 'Base#LCS2'
+		l2.SolverId = 'Asm4EE'
+		expr = Asm4.makeExpressionPart( "Part", "Unnamed", "LCS2", "Unnamed", "LCS3" )
+		l2.setExpression('Placement', expr)
+		Gui.Selection.clearSelection()
+		Gui.Selection.addSelection('Unnamed','Assembly','Base.Body.')
+		Gui.Selection.addSelection('Unnamed','Assembly','Tool.Body001.')
+		Gui.activateWorkbench("WackyWorkbench")
+		Gui.runCommand('StraightCut',0)
+		doc.recompute()
+		v = b1.Shape.Volume
+		App.closeDocument(doc.Name)
+		self.assertAlmostEqual(v, 87457.9652414781, 7)
 
 
 Test.runTestsFromClass(TestStraightCut)
