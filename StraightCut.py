@@ -252,8 +252,10 @@ Make a straight cut through a body to fit an intersecting body
     else:
         FreeCAD.Console.PrintError("can't use selection")
         return
+    doc.openTransaction("StraightCut")
     StraightCut(obj)
     ViewProviderStraightCut(obj.ViewObject)
+    doc.commitTransaction()
     doc.recompute()
     return
 
