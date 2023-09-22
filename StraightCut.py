@@ -29,7 +29,7 @@ class StraightCut():
     def execute(self, obj):
         doc = FreeCAD.ActiveDocument
         sel = FreeCADGui.Selection.getSelection()
-        # s[base|tool] = selected
+        # s[base|tool] = selected, or link if the selection is in a link
         sbase = None
         stool = None
         base = None
@@ -46,21 +46,34 @@ class StraightCut():
                 lbase = None
                 ltool = None
 
+                # If there is an assembly, and the selection has a parent(i.e. the selection is a Body inside a Part)
                 if hasattr(doc, 'Assembly') and sbase.getParent():
+                    # Filter the part's InList for links with the selection inside.
                     lbase = list(filter(lambda o: o.TypeId == 'App::Link' and \
                         FreeCADGui.Selection.isSelected(doc.Assembly, o.Name + "." + sbase.Name + "."), sbase.getParent().InList))
+                # If a link is selected
                 if sbase.TypeId == 'App::Link':
+                    # store the name of the link as a string
                     obj.AttachedBase = sbase.Name
+                    # store the linked object as the base
                     obj.Base = sbase.LinkedObject
                     linked = True
+                # If our filter found something
                 elif lbase:
+                    # Store the name of the link as a string
                     obj.AttachedBase = lbase[0].Name
+                    # Store the selected object as the base.
+                    # The link is automatically dereferenced since we're not dealing with the link itself,
+                    #   but rather a child of it.
                     obj.Base = sbase
+                    # Use the link as the selection for computation
                     sbase = lbase[0]
                     linked = True
+                # No link involved
                 else:
                     obj.Base = sbase
 
+                # We do the same thing for the tool as we did for the part.
                 if hasattr(doc, 'Assembly') and stool.getParent():
                     ltool = list(filter(lambda o: o.TypeId == 'App::Link' and \
                         FreeCADGui.Selection.isSelected(doc.Assembly, o.Name + "." + stool.Name + "."), stool.getParent().InList))
@@ -90,35 +103,48 @@ class StraightCut():
                 stool.recompute()
                 linked = True
 
+        # Check if the base is a Part or PartDesign Feature
         if obj.Base.isDerivedFrom('PartDesign::Feature'):
+            # If it's a PartDesign Feature, we need to make the body the base for computation
             base = obj.Base.getParent()
+            # If our StraightCut object is the tip of the body
             if base.Tip == obj:
+                # Store the BaseFeature to use for recompute
                 obj.Base = obj.BaseFeature
         elif obj.Base.isDerivedFrom('Part::Feature'):
             base = obj.Base
 
+        # Only on initial generation
         if not recompute:
+            # Store the tip of the body
             if obj.Base.TypeId == 'PartDesign::Body':
                 obj.Base = obj.Base.Tip
 
+            # Create ShapeBinder of the tool to avoid loops
             if obj.Tool.TypeId == 'PartDesign::Body' or obj.Tool.isDerivedFrom('PartDesign::Feature'):
                 if base.TypeId == 'PartDesign::Body':
                     shb = base.newObject('PartDesign::ShapeBinder','ShapeBinder')
                 else:
                     shb = doc.addObject('PartDesign::ShapeBinder','ShapeBinder')
                 shb.Support = [obj.Tool,'']
+                # This is important to keep everything positioned properly
                 shb.TraceSupport = True
                 obj.Tool = shb
                 shb.recompute()
                 shb.Visibility = False
 
+        # Use the stored tool for computation
         tool = obj.Tool
 
+        # If we're working with a PartDesign Body, we need to keep only one resulting solid
         if obj.TypeId == 'PartDesign::FeaturePython':
             keepLargest = True
 
         # common shape, which will be generated differently in different scenarios
         com = None
+        # In this section we make some temporary Parts, and move the temporary base part flat to the coordinate plane.
+        # This is necessary because Draft makeShape2DView places the 2D view on the plane.
+        # We need to copy placements so we don't edit the original placement, touching its object.
         pl = base.Placement.copy()
         ptb = doc.addObject("Part::Feature", "TempBase")
         ptb.Shape = obj.Base.Shape
@@ -129,7 +155,9 @@ class StraightCut():
             ttb.Placement = tool.Placement
         else:
             tp = tool.Placement.copy()
+            # Move the (temp) tool by the same amount that the (temp) base was moved.
             ttb.Placement = placementSub(tp, pl)
+        # Use our temporary Parts for computation
         base = ptb
         tool = ttb
         base.recompute()
@@ -152,6 +180,7 @@ class StraightCut():
             else:
                 FreeCAD.Console.PrintError("not attached")
                 return
+            # Subtract all placements until we get back to the origin.
             placement = attached.LinkPlacement
             pat = doc.getObject(attached.AttachedTo.split('#')[0])
             while pat != None:
@@ -164,7 +193,9 @@ class StraightCut():
             com = base.Shape.common(tool.Shape)
         comp = doc.addObject("Part::Feature", "Common")
         comp.Shape = com
+        # The height of the intersection will be used as the distance to pocket
         cl = comp.Shape.BoundBox.ZLength
+        # Get the vector of the base's Z axis
         vec = base.Placement.Rotation.multVec(FreeCAD.Vector(0,0,1))
         view = Draft.makeShape2DView(comp, vec)
         view.recompute()
@@ -174,18 +205,22 @@ class StraightCut():
             doc.removeObject(view.Name)
             doc.removeObject(comp.Name)
         face = Part.Face(wire)
+        # Extrude by the Z height we got earlier
         extr = face.extrude(base.Placement.Rotation.multVec(FreeCAD.Vector(0, 0, cl)))
         cut = base.Shape.cut(extr)
         if not debug:
             doc.removeObject(base.Name)
             doc.removeObject(tool.Name)
         if keepLargest:
+            # Sort solids by volume and keep the largest
             shps = sorted(cut.SubShapes, key=lambda s: s.Volume)
             obj.Shape = shps[-1]
         else:
             obj.Shape = cut
+        # If the base has a parent, we'll make our StraightCut object a child of it
         if obj.getParent() == None and obj.Base.getParent() != None:
             obj.Base.getParent().addObject(obj)
+        # Part or Feature with no container, needs its own placement
         else:
             obj.Placement = pl
             obj.Base.Visibility = False
@@ -201,8 +236,10 @@ class ViewProviderStraightCut:
 
     def claimChildren(self):
         objs = []
+        # If it's a Part in a link, don't claim the tool
         if not (self.Object.TypeId == 'Part::FeaturePython' and self.Object.AttachedTool):
             objs.append(self.Object.Tool)
+        # Claim the base if it's a Part
         if self.Object.TypeId == 'Part::FeaturePython':
             objs.append(self.Object.Base)
         return objs
