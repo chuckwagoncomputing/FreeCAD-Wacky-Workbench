@@ -96,9 +96,11 @@ class StraightCut():
         # Recomputation
         else:
             recompute = True
-            # If we have a link that points to the base (assume the same for tool)
+            # If we have a link that points to the base
             if obj.AttachedBase != "":
                 sbase = doc.getObject(obj.AttachedBase)
+                linked = True
+            if obj.AttachedTool != "":
                 stool = doc.getObject(obj.AttachedTool)
                 stool.recompute()
                 linked = True
